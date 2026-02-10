@@ -7,7 +7,7 @@ import { productService, Product } from '../services/product.service';
 import { categoryService, Category } from '../services/category.service';
 
 // --- Types ---
-type Tab = 'general' | 'pricing' | 'media' | 'specs' | 'seo' | 'linked' | 'faqs';
+type Tab = 'general' | 'pricing' | 'media' | 'specs' | 'seo' | 'linked' | 'faqs' | 'configuration';
 
 interface ProductFormData extends Partial<Product> {
   newImage?: string;
@@ -155,11 +155,71 @@ export const ProductsPage = () => {
     }));
   };
 
+
   const handleUpdateFaq = (index: number, field: 'question' | 'answer', value: string) => {
     const newFaqs = [...(formData.faqs || [])];
     newFaqs[index] = { ...newFaqs[index], [field]: value };
     setFormData(prev => ({ ...prev, faqs: newFaqs }));
   };
+
+  // --- Configuration Helpers ---
+  const handleAddSize = () => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: [...(prev.sizes || []), { name: '', price: 0 }]
+    }));
+  };
+
+  const handleRemoveSize = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleUpdateSize = (index: number, field: 'name' | 'price', value: string | number) => {
+    const newSizes = [...(formData.sizes || [])];
+    newSizes[index] = { ...newSizes[index], [field]: value };
+    setFormData(prev => ({ ...prev, sizes: newSizes }));
+  };
+
+  const handleAddFragrance = () => {
+    const frag = prompt("Enter Fragrance Name:");
+    if (frag && !formData.fragrances?.includes(frag)) {
+      setFormData(prev => ({
+        ...prev,
+        fragrances: [...(prev.fragrances || []), frag]
+      }));
+    }
+  };
+
+  const handleRemoveFragrance = (frag: string) => {
+    setFormData(prev => ({
+      ...prev,
+      fragrances: prev.fragrances?.filter(f => f !== frag)
+    }));
+  };
+
+  const handleAddPack = () => {
+    setFormData(prev => ({
+      ...prev,
+      packs: [...(prev.packs || []), { label: '', quantity: 1, pricingType: 'auto' }]
+    }));
+  };
+
+  const handleRemovePack = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      packs: prev.packs?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleUpdatePack = (index: number, field: string, value: any) => {
+    const newPacks = [...(formData.packs || [])];
+    newPacks[index] = { ...newPacks[index], [field]: value };
+    setFormData(prev => ({ ...prev, packs: newPacks }));
+  };
+
 
   const handleSave = async () => {
     try {
@@ -275,6 +335,17 @@ export const ProductsPage = () => {
                   {categories.map((cat) => (
                     <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+                <select
+                  value={formData.productType || 'simple'}
+                  onChange={e => setFormData({ ...formData, productType: e.target.value as any })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="simple">Simple Product</option>
+                  <option value="configurable">Configurable (Candle)</option>
                 </select>
               </div>
               <div>
@@ -648,6 +719,191 @@ export const ProductsPage = () => {
           </div>
         );
 
+      case 'configuration':
+        return (
+          <div className="space-y-8">
+            {/* Sizes */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-800">Sizes</h3>
+                <button
+                  onClick={handleAddSize}
+                  className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
+                >
+                  <FiPlus className="w-4 h-4" /> Add Size
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.sizes?.map((size, index) => (
+                  <div key={index} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg">
+                    <input
+                      type="text"
+                      placeholder="Size Name (e.g. Small)"
+                      value={size.name}
+                      onChange={e => handleUpdateSize(index, 'name', e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg"
+                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        value={size.price}
+                        onChange={e => handleUpdateSize(index, 'price', Number(e.target.value))}
+                        className="w-24 pl-8 pr-3 py-2 border border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    <button onClick={() => handleRemoveSize(index)} className="text-red-500 p-2 hover:bg-red-50 rounded"><FiTrash2 /></button>
+                  </div>
+                ))}
+                {(!formData.sizes || formData.sizes.length === 0) && (
+                  <p className="text-sm text-gray-500 col-span-2">No sizes passed. Please add at least one.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Fragrances */}
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-800">Fragrances</h3>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.allowMixedFragrance || false}
+                    onChange={e => setFormData({ ...formData, allowMixedFragrance: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-gray-700 font-medium">Allow Mixed Fragrances per Pack</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.fragrances?.map(frag => (
+                  <span key={frag} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    {frag}
+                    <button onClick={() => handleRemoveFragrance(frag)}><FiX size={14} /></button>
+                  </span>
+                ))}
+                <button onClick={handleAddFragrance} className="px-3 py-1 border border-dashed border-gray-300 rounded-full text-gray-500 hover:border-blue-500 hover:text-blue-500 flex items-center gap-1 text-sm">
+                  <FiPlus size={14} /> Add Fragrance
+                </button>
+              </div>
+            </div>
+
+            {/* Lid Option */}
+            <div className="space-y-4 border-t pt-6">
+              <h3 className="text-lg font-bold text-gray-800">Lid Option</h3>
+              <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={formData.lidOption?.enabled || false}
+                    onChange={e => setFormData({
+                      ...formData,
+                      lidOption: {
+                        enabled: e.target.checked,
+                        price: formData.lidOption?.price || 0
+                      }
+                    })}
+                    className="w-5 h-5 text-blue-600 rounded"
+                  />
+                  <label className="text-gray-700 font-medium">Enable Lid Selection</label>
+                </div>
+                {formData.lidOption?.enabled && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">Add-on Price (per unit):</span>
+                    <input
+                      type="number"
+                      value={formData.lidOption.price}
+                      onChange={e => setFormData({
+                        ...formData,
+                        lidOption: { ...formData.lidOption!, price: Number(e.target.value) }
+                      })}
+                      className="w-32 px-3 py-2 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Packs */}
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-800">Packs & Pricing Rules</h3>
+                <button
+                  onClick={handleAddPack}
+                  className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
+                >
+                  <FiPlus className="w-4 h-4" /> Add Pack
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                {formData.packs?.map((pack, index) => (
+                  <div key={index} className="bg-gray-50 border border-gray-200 p-4 rounded-xl relative">
+                    <button onClick={() => handleRemovePack(index)} className="absolute top-2 right-2 text-gray-400 hover:text-red-500 p-1"><FiTrash2 size={16} /></button>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase">Label</label>
+                        <input
+                          type="text"
+                          value={pack.label}
+                          onChange={e => handleUpdatePack(index, 'label', e.target.value)}
+                          placeholder="e.g. Single"
+                          className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase">Quantity</label>
+                        <input
+                          type="number"
+                          value={pack.quantity}
+                          onChange={e => handleUpdatePack(index, 'quantity', Number(e.target.value))}
+                          className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase">Pricing Type</label>
+                        <select
+                          value={pack.pricingType}
+                          onChange={e => handleUpdatePack(index, 'pricingType', e.target.value)}
+                          className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
+                        >
+                          <option value="auto">Auto (Size × Qty)</option>
+                          <option value="fixed">Fixed Price</option>
+                          <option value="discount">Discount %</option>
+                        </select>
+                      </div>
+                      <div>
+                        {pack.pricingType === 'fixed' && (
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase">Fixed Price</label>
+                            <input
+                              type="number"
+                              value={pack.fixedPrice || ''}
+                              onChange={e => handleUpdatePack(index, 'fixedPrice', Number(e.target.value))}
+                              className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
+                            />
+                          </div>
+                        )}
+                        {pack.pricingType === 'discount' && (
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase">Discount %</label>
+                            <input
+                              type="number"
+                              value={pack.discountPercent || ''}
+                              onChange={e => handleUpdatePack(index, 'discountPercent', Number(e.target.value))}
+                              className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return <div>Select a tab</div>;
     }
@@ -783,6 +1039,14 @@ export const ProductsPage = () => {
                 >
                   <FiMessageSquare className="w-4 h-4" /> FAQs
                 </button>
+                {formData.productType === 'configurable' && (
+                  <button
+                    onClick={() => setActiveTab('configuration')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'configuration' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+                  >
+                    <FiLayers className="w-4 h-4" /> Configuration
+                  </button>
+                )}
               </div>
 
               {/* Content Area */}

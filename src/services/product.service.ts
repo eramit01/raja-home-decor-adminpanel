@@ -40,6 +40,20 @@ export interface Product {
         answer: string;
     }[];
     sections?: any[];
+
+    // Configurable Product Fields
+    productType?: 'simple' | 'configurable';
+    sizes?: { name: string; price: number }[];
+    fragrances?: string[];
+    lidOption?: { enabled: boolean; price: number };
+    packs?: {
+        label: string;
+        quantity: number;
+        pricingType: 'auto' | 'fixed' | 'discount';
+        fixedPrice?: number;
+        discountPercent?: number;
+    }[];
+    allowMixedFragrance?: boolean;
 }
 
 export interface ProductsResponse {
