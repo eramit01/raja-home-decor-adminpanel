@@ -68,6 +68,18 @@ export interface Product {
         question: string;
         answer: string;
     }[];
+    // Mobile-First PDP Specific Fields
+    sizes?: Array<{ name: string; price: number }>;
+    fragrances?: string[];
+    packs?: Array<{
+        label: string;
+        quantity: number;
+        pricingType: 'auto' | 'fixed' | 'discount';
+        fixedPrice?: number;
+        discountPercent?: number;
+    }>;
+    lidOption?: { enabled: boolean; price: number };
+    allowMixedFragrance?: boolean;
     sections?: {
         id?: string;
         type: string;
