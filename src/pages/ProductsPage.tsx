@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter, FiX, FiCheck, FiStar,
+  FiPlus, FiEdit2, FiTrash2, FiSearch, FiX, FiCheck,
   FiPackage, FiDollarSign, FiImage, FiList, FiGlobe, FiLayers, FiMessageSquare
 } from 'react-icons/fi';
 import { productService, Product } from '../services/product.service';
@@ -14,6 +14,12 @@ interface ProductFormData extends Partial<Product> {
   newTag?: string;
   showOnHome?: boolean;
   isBestSeller?: boolean;
+  sizes?: Array<{ name: string; price: number }>;
+  fragrances?: string[];
+  packs?: Array<{ label: string; quantity: number; pricingType: string; fixedPrice?: number; discountPercent?: number }>;
+  productType?: string;
+  lidOption?: { enabled: boolean; price: number };
+  allowMixedFragrance?: boolean;
 }
 
 // --- Product Hook ---

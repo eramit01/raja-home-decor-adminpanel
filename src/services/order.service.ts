@@ -34,7 +34,6 @@ export interface Order {
     status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
     paymentStatus: 'Paid' | 'Pending' | 'Failed';
     paymentMethod: 'COD' | 'Online';
-    refundStatus: 'none' | 'requested' | 'processed' | 'failed';
     createdAt: string;
 }
 
@@ -71,16 +70,10 @@ const mapOrder = (o: any): Order => ({
     paymentStatus: o.paymentStatus === 'verified' ? 'Paid' :
         o.paymentStatus === 'failed' ? 'Failed' : 'Pending',
     paymentMethod: o.paymentMethod === 'cod' ? 'COD' : 'Online',
-    refundStatus: o.refundStatus || 'none',
     createdAt: o.createdAt
 });
 
 export const orderService = {
-    processRefund: async (id: string, status: 'processed' | 'failed', note?: string) => {
-        const response = await api.post(`/refunds/${id}/process`, { status, note });
-        return response.data;
-    },
-
     getOrders: async (page: number = 1, limit: number = 20) => {
         const response = await api.get(`/orders/admin/all?page=${page}&limit=${limit}`);
         const { orders, total, pages } = response.data.data;

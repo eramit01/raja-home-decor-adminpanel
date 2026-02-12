@@ -17,6 +17,35 @@ export interface Product {
     categoryId?: string; // ID for editing
     status?: 'active' | 'draft' | 'archived';
     tags?: string[];
+    // Dynamic Attributes
+    attributes?: {
+        name: string;
+        type: 'select' | 'radio' | 'color';
+        isRequired: boolean;
+        isBaseAttribute?: boolean; // New
+        affectsPrice: boolean;
+        isMultiplier: boolean;
+        options: {
+            label: string;
+            value?: string;
+            absolutePrice?: number; // New
+            priceAdjustment?: number;
+            multiplier?: number;
+            skuCode?: string;
+            isDefault?: boolean;
+            hexColor?: string;
+        }[];
+    }[];
+    addOns?: {
+        name: string;
+        pricingMode: 'flat' | 'size_dependent';
+        flatPrice?: number;
+        sizePricing?: {
+            sizeLabel: string;
+            price: number;
+        }[];
+        isRequired?: boolean;
+    }[];
     sku?: string;
     slug?: string;
     dimensions?: {
@@ -39,21 +68,12 @@ export interface Product {
         question: string;
         answer: string;
     }[];
-    sections?: any[];
-
-    // Configurable Product Fields
-    productType?: 'simple' | 'configurable';
-    sizes?: { name: string; price: number }[];
-    fragrances?: string[];
-    lidOption?: { enabled: boolean; price: number };
-    packs?: {
-        label: string;
-        quantity: number;
-        pricingType: 'auto' | 'fixed' | 'discount';
-        fixedPrice?: number;
-        discountPercent?: number;
+    sections?: {
+        id?: string;
+        type: string;
+        title?: string;
+        data: any;
     }[];
-    allowMixedFragrance?: boolean;
 }
 
 export interface ProductsResponse {

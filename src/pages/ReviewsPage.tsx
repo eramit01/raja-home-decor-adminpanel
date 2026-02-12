@@ -29,8 +29,6 @@ export const ReviewsPage = () => {
     comment: '',
     date: new Date().toISOString().split('T')[0] // Default today
   });
-  const [reviewImages, setReviewImages] = useState<File[]>([]);
-
 
   const fetchReviews = async () => {
     try {
@@ -73,32 +71,20 @@ export const ReviewsPage = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('productId', newReview.productId);
-    formData.append('manualName', newReview.manualName);
-    formData.append('rating', newReview.rating.toString());
-    formData.append('comment', newReview.comment);
-    formData.append('date', newReview.date);
-
-    reviewImages.forEach((file) => {
-      formData.append('images', file);
-    });
-
     try {
-      await ReviewService.createReview(formData);
+      await ReviewService.createReview({
+        product: newReview.productId,
+        manualName: newReview.manualName,
+        rating: newReview.rating,
+        comment: newReview.comment,
+        createdAt: newReview.date // Optional override if API supports it
+      });
       setIsModalOpen(false);
       setNewReview({ productId: '', manualName: '', rating: 5, comment: '', date: new Date().toISOString().split('T')[0] });
-      setReviewImages([]);
       fetchReviews();
     } catch (error) {
       console.error("Failed to create review", error);
       alert("Failed to create review");
-    }
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setReviewImages(Array.from(e.target.files));
     }
   };
 
@@ -308,18 +294,6 @@ export const ReviewsPage = () => {
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg"
                   placeholder="Great product..."
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Images</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg"
-                />
-                <p className="text-xs text-gray-500 mt-1">Select up to 5 images</p>
               </div>
             </div>
 

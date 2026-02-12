@@ -8,21 +8,17 @@ import {
   FiImage,
   FiList,
   FiTag,
-  FiUsers,
-  FiActivity,
 } from 'react-icons/fi';
 
 const menuItems = [
   { path: '/dashboard', icon: FiHome, label: 'Dashboard' },
   { path: '/products', icon: FiPackage, label: 'Products' },
   { path: '/orders', icon: FiShoppingBag, label: 'Orders' },
-  { path: '/users', icon: FiUsers, label: 'Customers' },
   { path: '/bulk-enquiries', icon: FiMessageSquare, label: 'Bulk Enquiries' },
   { path: '/reviews', icon: FiStar, label: 'Reviews' },
   { path: '/banners', icon: FiImage, label: 'Banners' },
   { path: '/categories', icon: FiList, label: 'Categories' },
   { path: '/coupons', icon: FiTag, label: 'Coupons' },
-  { path: '/inventory', icon: FiActivity, label: 'Inventory' },
 ];
 
 export const Sidebar = () => {

@@ -33,18 +33,6 @@ export const OrderDetailsPage = () => {
         }
     };
 
-    const handleProcessRefund = async (status: 'processed' | 'failed') => {
-        if (!order || !window.confirm(`Are you sure you want to mark this refund as ${status}?`)) return;
-        try {
-            await orderService.processRefund(order.id, status);
-            setOrder({ ...order, refundStatus: status });
-            alert(`Refund ${status} successfully`);
-        } catch (error) {
-            console.error('Failed to process refund', error);
-            alert('Failed to process refund');
-        }
-    };
-
     if (loading) return <div className="p-8 text-center text-gray-500">Loading order details...</div>;
     if (!order) return <div className="p-8 text-center text-red-500">Order not found</div>;
 
@@ -216,7 +204,7 @@ export const OrderDetailsPage = () => {
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-gray-600">Status</span>
                             <span className={`px-2 py-1 text-xs font-semibold rounded ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' :
-                                order.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                                    order.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                                 }`}>
                                 {order.paymentStatus}
                             </span>

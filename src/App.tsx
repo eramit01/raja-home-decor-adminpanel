@@ -10,8 +10,6 @@ import { ReviewsPage } from './pages/ReviewsPage';
 import { BannersPage } from './pages/BannersPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { CouponsPage } from './pages/CouponsPage';
-import { UsersPage } from './pages/UsersPage';
-import { InventoryPage } from './pages/InventoryPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -36,8 +34,6 @@ function App() {
         <Route path="banners" element={<BannersPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="coupons" element={<CouponsPage />} />
-        <Route path="users" element={<UsersPage />} />
-        <Route path="inventory" element={<InventoryPage />} />
       </Route>
     </Routes>
   );
