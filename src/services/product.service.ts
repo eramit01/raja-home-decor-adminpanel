@@ -78,7 +78,10 @@ export interface Product {
         fixedPrice?: number;
         discountPercent?: number;
     }>;
-    lidOption?: { enabled: boolean; price: number };
+    styles?: Array<{
+        label: string;
+        priceAdjustment: number;
+    }>;
     allowMixedFragrance?: boolean;
     sections?: {
         id?: string;

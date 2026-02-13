@@ -9,16 +9,51 @@ import { categoryService, Category } from '../services/category.service';
 // --- Types ---
 type Tab = 'general' | 'pricing' | 'media' | 'specs' | 'seo' | 'linked' | 'faqs' | 'configuration';
 
-interface ProductFormData extends Partial<Product> {
+interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
   newImage?: string;
   newTag?: string;
   showOnHome?: boolean;
   isBestSeller?: boolean;
+
+  // Universal Form Data
+  variants?: Array<{
+    _id?: string;
+    label: string;
+    sku?: string;
+    price: number;
+    originalPrice?: number;
+    stock?: number;
+    image?: string;
+    isDefault?: boolean;
+    packs?: Array<{
+      _id?: string;
+      label: string;
+      quantity: number;
+      price: number;
+      originalPrice?: number;
+      isDefault?: boolean;
+    }>;
+  }>;
+
+  styles?: Array<{
+    _id?: string;
+    label: string;
+    priceAdjustment: number;
+    image?: string;
+  }>;
+
+  addOns?: Array<{
+    _id?: string;
+    label: string;
+    price: number;
+    description?: string;
+    required?: boolean;
+  }>;
+
+  // Legacy (Keep for fallback if needed, or remove if fully replacing)
   sizes?: Array<{ name: string; price: number }>;
   fragrances?: string[];
-  packs?: Array<{ label: string; quantity: number; pricingType: string; fixedPrice?: number; discountPercent?: number }>;
-  productType?: string;
-  lidOption?: { enabled: boolean; price: number };
+  packs?: Array<{ label: string; quantity: number; pricingType: 'auto' | 'fixed' | 'discount'; fixedPrice?: number; discountPercent?: number }>;
   allowMixedFragrance?: boolean;
 }
 
@@ -47,7 +82,7 @@ const useAdminProducts = () => {
 };
 
 export const ProductsPage = () => {
-  const { products, loading, refetch: loadProducts } = useAdminProducts();
+  const { products, refetch: loadProducts } = useAdminProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('general');
@@ -74,15 +109,18 @@ export const ProductsPage = () => {
   };
 
   const handleEdit = (product: Product) => {
-    // Prefer categoryId for the form value if available, else fallback to name (which might fail validation if ID required)
+    // Prefer categoryId for the form value if available (set by service)
     let categoryId = '';
-    if (typeof product.category === 'object' && product.category !== null) {
-      categoryId = (product.category as any)._id;
+
+    if (product.categoryId) {
+      categoryId = product.categoryId;
+    } else if (typeof product.category === 'object' && product.category !== null) {
+      categoryId = (product.category as any)._id; // Fallback if raw object
     } else if (typeof product.category === 'string') {
-      categoryId = product.category;
+      categoryId = product.category; // Fallback if string ID (or arguably name if normalized, but ID expected)
     }
 
-    setFormData({ ...product, category: categoryId });
+    setFormData({ ...product, category: categoryId } as any);
     setActiveTab('general');
     setIsModalOpen(true);
   };
@@ -169,25 +207,7 @@ export const ProductsPage = () => {
   };
 
   // --- Configuration Helpers ---
-  const handleAddSize = () => {
-    setFormData(prev => ({
-      ...prev,
-      sizes: [...(prev.sizes || []), { name: '', price: 0 }]
-    }));
-  };
 
-  const handleRemoveSize = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      sizes: prev.sizes?.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleUpdateSize = (index: number, field: 'name' | 'price', value: string | number) => {
-    const newSizes = [...(formData.sizes || [])];
-    newSizes[index] = { ...newSizes[index], [field]: value };
-    setFormData(prev => ({ ...prev, sizes: newSizes }));
-  };
 
   const handleAddFragrance = () => {
     const frag = prompt("Enter Fragrance Name:");
@@ -206,25 +226,7 @@ export const ProductsPage = () => {
     }));
   };
 
-  const handleAddPack = () => {
-    setFormData(prev => ({
-      ...prev,
-      packs: [...(prev.packs || []), { label: '', quantity: 1, pricingType: 'auto' }]
-    }));
-  };
 
-  const handleRemovePack = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      packs: prev.packs?.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleUpdatePack = (index: number, field: string, value: any) => {
-    const newPacks = [...(formData.packs || [])];
-    newPacks[index] = { ...newPacks[index], [field]: value };
-    setFormData(prev => ({ ...prev, packs: newPacks }));
-  };
 
 
   const handleSave = async () => {
@@ -246,20 +248,26 @@ export const ProductsPage = () => {
         return;
       }
 
+      // Sanitize Data
+      const sanitizedVariants = formData.variants?.filter(v => v.label && v.label.trim() !== '').map(v => ({
+        ...v,
+        packs: v.packs?.filter(p => p.label && p.label.trim() !== '') // Remove empty packs
+      }));
+
+      // if variants exist but are all empty/filtered out, send empty array or keep? 
+      // If user intended to have variants but left them blank, they are removed here.
+
+      const payload = {
+        ...formData,
+        variants: sanitizedVariants,
+        name: formData.title,
+        description: formData.description || formData.shortDescription || formData.title,
+      };
+
       if (formData.id || formData._id) {
-        const apiPayload = {
-          ...formData,
-          name: formData.title,
-          description: formData.description || formData.shortDescription || formData.title, // Fallback chain
-        };
-        await productService.updateProduct((formData.id || formData._id) as string, apiPayload);
+        await productService.updateProduct((formData.id || formData._id) as string, payload);
       } else {
-        const apiPayload = {
-          ...formData,
-          name: formData.title,
-          description: formData.description || formData.shortDescription || formData.title, // Fallback chain
-        };
-        await productService.createProduct(apiPayload);
+        await productService.createProduct(payload);
       }
       setIsModalOpen(false);
       loadProducts(); // Refresh list
@@ -343,17 +351,7 @@ export const ProductsPage = () => {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
-                <select
-                  value={formData.productType || 'simple'}
-                  onChange={e => setFormData({ ...formData, productType: e.target.value as any })}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="simple">Simple Product</option>
-                  <option value="configurable">Configurable (Candle)</option>
-                </select>
-              </div>
+              {/* Product Type Selector Removed */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select
@@ -728,59 +726,306 @@ export const ProductsPage = () => {
       case 'configuration':
         return (
           <div className="space-y-8">
-            {/* Sizes */}
+
+            {/* --- VARIANTS SECTION (Universal) --- */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">Sizes</h3>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Variants</h3>
+                  <p className="text-sm text-gray-500">Add sizes, colors, or other variations.</p>
+                </div>
                 <button
-                  onClick={handleAddSize}
-                  className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    variants: [...(prev.variants || []), {
+                      label: '', price: prev.price || 0, stock: 0, packs: []
+                    }]
+                  }))}
+                  className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
                 >
-                  <FiPlus className="w-4 h-4" /> Add Size
+                  <FiPlus /> Add Variant
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {formData.sizes?.map((size, index) => (
-                  <div key={index} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg">
-                    <input
-                      type="text"
-                      placeholder="Size Name (e.g. Small)"
-                      value={size.name}
-                      onChange={e => handleUpdateSize(index, 'name', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg"
-                    />
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
-                      <input
-                        type="number"
-                        placeholder="Price"
-                        value={size.price}
-                        onChange={e => handleUpdateSize(index, 'price', Number(e.target.value))}
-                        className="w-24 pl-8 pr-3 py-2 border border-gray-200 rounded-lg"
-                      />
+
+              <div className="space-y-4">
+                {formData.variants?.map((variant, vIndex) => (
+                  <div key={vIndex} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <div className="flex gap-4 items-start mb-4">
+                      <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <input
+                          placeholder="Label (e.g. Small, Red)"
+                          value={variant.label}
+                          onChange={e => {
+                            const newVariants = [...(formData.variants || [])];
+                            newVariants[vIndex].label = e.target.value;
+                            setFormData({ ...formData, variants: newVariants });
+                          }}
+                          className="px-3 py-2 border rounded-lg"
+                        />
+                        <input
+                          placeholder="SKU"
+                          value={variant.sku || ''}
+                          onChange={e => {
+                            const newVariants = [...(formData.variants || [])];
+                            newVariants[vIndex].sku = e.target.value;
+                            setFormData({ ...formData, variants: newVariants });
+                          }}
+                          className="px-3 py-2 border rounded-lg"
+                        />
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            value={variant.price}
+                            onChange={e => {
+                              const newVariants = [...(formData.variants || [])];
+                              newVariants[vIndex].price = Number(e.target.value);
+                              setFormData({ ...formData, variants: newVariants });
+                            }}
+                            className="w-full pl-6 px-3 py-2 border rounded-lg"
+                          />
+                        </div>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">MRP</span>
+                          <input
+                            type="number"
+                            placeholder="Org Price"
+                            value={variant.originalPrice || ''}
+                            onChange={e => {
+                              const newVariants = [...(formData.variants || [])];
+                              newVariants[vIndex].originalPrice = e.target.value ? Number(e.target.value) : undefined;
+                              setFormData({ ...formData, variants: newVariants });
+                            }}
+                            className="w-full pl-8 px-3 py-2 border rounded-lg text-sm"
+                          />
+                        </div>
+                        <input
+                          type="number"
+                          placeholder="Stock"
+                          value={variant.stock}
+                          onChange={e => {
+                            const newVariants = [...(formData.variants || [])];
+                            newVariants[vIndex].stock = Number(e.target.value);
+                            setFormData({ ...formData, variants: newVariants });
+                          }}
+                          className="px-3 py-2 border rounded-lg"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newVariants = formData.variants?.filter((_, i) => i !== vIndex);
+                          setFormData({ ...formData, variants: newVariants });
+                        }}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded"
+                      >
+                        <FiTrash2 />
+                      </button>
                     </div>
-                    <button onClick={() => handleRemoveSize(index)} className="text-red-500 p-2 hover:bg-red-50 rounded"><FiTrash2 /></button>
+
+                    {/* Variant Packs */}
+                    <div className="pl-4 border-l-2 border-gray-200 ml-2">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-bold text-gray-500 uppercase">Packs for {variant.label || 'Variant'}</span>
+                        <button
+                          onClick={() => {
+                            const newVariants = [...(formData.variants || [])];
+                            if (!newVariants[vIndex].packs) newVariants[vIndex].packs = [];
+                            newVariants[vIndex].packs!.push({ label: 'Pack of ', quantity: 2, price: 0 });
+                            setFormData({ ...formData, variants: newVariants });
+                          }}
+                          className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                        >
+                          <FiPlus size={10} /> Add Pack
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {variant.packs?.map((pack, pIndex) => (
+                          <div key={pIndex} className="flex gap-2 items-center">
+                            <input
+                              placeholder="Pack Label"
+                              value={pack.label}
+                              onChange={e => {
+                                const newVariants = [...(formData.variants || [])];
+                                newVariants[vIndex].packs![pIndex].label = e.target.value;
+                                setFormData({ ...formData, variants: newVariants });
+                              }}
+                              className="flex-1 px-2 py-1 border rounded text-sm"
+                            />
+                            <input
+                              type="number"
+                              placeholder="Qty"
+                              value={pack.quantity}
+                              onChange={e => {
+                                const newVariants = [...(formData.variants || [])];
+                                newVariants[vIndex].packs![pIndex].quantity = Number(e.target.value);
+                                setFormData({ ...formData, variants: newVariants });
+                              }}
+                              className="w-16 px-2 py-1 border rounded text-sm"
+                            />
+                            <div className="relative w-24">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">₹</span>
+                              <input
+                                type="number"
+                                placeholder="Price"
+                                value={pack.price}
+                                onChange={e => {
+                                  const newVariants = [...(formData.variants || [])];
+                                  newVariants[vIndex].packs![pIndex].price = Number(e.target.value);
+                                  setFormData({ ...formData, variants: newVariants });
+                                }}
+                                className="w-full pl-4 px-2 py-1 border rounded text-sm"
+                              />
+                            </div>
+                            <div className="relative w-24">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">MRP</span>
+                              <input
+                                type="number"
+                                placeholder="MRP"
+                                value={pack.originalPrice || ''}
+                                onChange={e => {
+                                  const newVariants = [...(formData.variants || [])];
+                                  newVariants[vIndex].packs![pIndex].originalPrice = e.target.value ? Number(e.target.value) : undefined;
+                                  setFormData({ ...formData, variants: newVariants });
+                                }}
+                                className="w-full pl-8 px-2 py-1 border rounded text-sm"
+                              />
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newVariants = [...(formData.variants || [])];
+                                newVariants[vIndex].packs = newVariants[vIndex].packs?.filter((_, i) => i !== pIndex);
+                                setFormData({ ...formData, variants: newVariants });
+                              }}
+                              className="text-red-400 hover:text-red-600"
+                            >
+                              <FiX />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ))}
-                {(!formData.sizes || formData.sizes.length === 0) && (
-                  <p className="text-sm text-gray-500 col-span-2">No sizes passed. Please add at least one.</p>
+
+                {(!formData.variants || formData.variants.length === 0) && (
+                  <div className="text-center p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                    <p className="text-gray-500 mb-2">No variants added. Product will use Base Price.</p>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Fragrances */}
+            {/* --- STYLES SECTION --- */}
             <div className="space-y-4 border-t pt-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">Fragrances</h3>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.allowMixedFragrance || false}
-                    onChange={e => setFormData({ ...formData, allowMixedFragrance: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 rounded"
-                  />
-                  <span className="text-sm text-gray-700 font-medium">Allow Mixed Fragrances per Pack</span>
-                </div>
+                <h3 className="text-lg font-bold text-gray-800">Styles</h3>
+                <button
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    styles: [...(prev.styles || []), { label: '', priceAdjustment: 0 }]
+                  }))}
+                  className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
+                >
+                  <FiPlus className="w-4 h-4" /> Add Style
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.styles?.map((style, index) => (
+                  <div key={index} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg">
+                    <input
+                      placeholder="Style Name (e.g. Gold Lid)"
+                      value={style.label}
+                      onChange={e => {
+                        const newStyles = [...(formData.styles || [])];
+                        newStyles[index].label = e.target.value;
+                        setFormData({ ...formData, styles: newStyles });
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg"
+                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">+₹</span>
+                      <input
+                        type="number"
+                        placeholder="Adj."
+                        value={style.priceAdjustment}
+                        onChange={e => {
+                          const newStyles = [...(formData.styles || [])];
+                          newStyles[index].priceAdjustment = Number(e.target.value);
+                          setFormData({ ...formData, styles: newStyles });
+                        }}
+                        className="w-20 pl-7 pr-2 py-2 border border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    <button
+                      onClick={() => setFormData(prev => ({ ...prev, styles: prev.styles?.filter((_, i) => i !== index) }))}
+                      className="text-red-500 p-2 hover:bg-red-50 rounded"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* --- ADD-ONS SECTION --- */}
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-800">Add-Ons</h3>
+                <button
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    addOns: [...(prev.addOns || []), { label: '', price: 0 }]
+                  }))}
+                  className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
+                >
+                  <FiPlus className="w-4 h-4" /> Add Add-On
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.addOns?.map((addon, index) => (
+                  <div key={index} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg">
+                    <input
+                      placeholder="Add-On Name (e.g. Gift Wrap)"
+                      value={addon.label}
+                      onChange={e => {
+                        const newAddOns = [...(formData.addOns || [])];
+                        newAddOns[index].label = e.target.value;
+                        setFormData({ ...formData, addOns: newAddOns });
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg"
+                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">₹</span>
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        value={addon.price}
+                        onChange={e => {
+                          const newAddOns = [...(formData.addOns || [])];
+                          newAddOns[index].price = Number(e.target.value);
+                          setFormData({ ...formData, addOns: newAddOns });
+                        }}
+                        className="w-20 pl-6 pr-2 py-2 border border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    <button
+                      onClick={() => setFormData(prev => ({ ...prev, addOns: prev.addOns?.filter((_, i) => i !== index) }))}
+                      className="text-red-500 p-2 hover:bg-red-50 rounded"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Fragrances (Legacy/Specific - Keep optional) */}
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex justify-between items-center cursor-pointer" onClick={() => {
+                // Toggle visibility if we want, or just always show
+              }}>
+                <h3 className="text-base font-semibold text-gray-600">Fragrances (Optional)</h3>
               </div>
               <div className="flex flex-wrap gap-2">
                 {formData.fragrances?.map(frag => (
@@ -794,121 +1039,10 @@ export const ProductsPage = () => {
                 </button>
               </div>
             </div>
-
-            {/* Lid Option */}
-            <div className="space-y-4 border-t pt-6">
-              <h3 className="text-lg font-bold text-gray-800">Lid Option</h3>
-              <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={formData.lidOption?.enabled || false}
-                    onChange={e => setFormData({
-                      ...formData,
-                      lidOption: {
-                        enabled: e.target.checked,
-                        price: formData.lidOption?.price || 0
-                      }
-                    })}
-                    className="w-5 h-5 text-blue-600 rounded"
-                  />
-                  <label className="text-gray-700 font-medium">Enable Lid Selection</label>
-                </div>
-                {formData.lidOption?.enabled && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">Add-on Price (per unit):</span>
-                    <input
-                      type="number"
-                      value={formData.lidOption.price}
-                      onChange={e => setFormData({
-                        ...formData,
-                        lidOption: { ...formData.lidOption!, price: Number(e.target.value) }
-                      })}
-                      className="w-32 px-3 py-2 border border-gray-200 rounded-lg"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Packs */}
-            <div className="space-y-4 border-t pt-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">Packs & Pricing Rules</h3>
-                <button
-                  onClick={handleAddPack}
-                  className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
-                >
-                  <FiPlus className="w-4 h-4" /> Add Pack
-                </button>
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                {formData.packs?.map((pack, index) => (
-                  <div key={index} className="bg-gray-50 border border-gray-200 p-4 rounded-xl relative">
-                    <button onClick={() => handleRemovePack(index)} className="absolute top-2 right-2 text-gray-400 hover:text-red-500 p-1"><FiTrash2 size={16} /></button>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                      <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Label</label>
-                        <input
-                          type="text"
-                          value={pack.label}
-                          onChange={e => handleUpdatePack(index, 'label', e.target.value)}
-                          placeholder="e.g. Single"
-                          className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Quantity</label>
-                        <input
-                          type="number"
-                          value={pack.quantity}
-                          onChange={e => handleUpdatePack(index, 'quantity', Number(e.target.value))}
-                          className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Pricing Type</label>
-                        <select
-                          value={pack.pricingType}
-                          onChange={e => handleUpdatePack(index, 'pricingType', e.target.value)}
-                          className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
-                        >
-                          <option value="auto">Auto (Size × Qty)</option>
-                          <option value="fixed">Fixed Price</option>
-                          <option value="discount">Discount %</option>
-                        </select>
-                      </div>
-                      <div>
-                        {pack.pricingType === 'fixed' && (
-                          <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase">Fixed Price</label>
-                            <input
-                              type="number"
-                              value={pack.fixedPrice || ''}
-                              onChange={e => handleUpdatePack(index, 'fixedPrice', Number(e.target.value))}
-                              className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
-                            />
-                          </div>
-                        )}
-                        {pack.pricingType === 'discount' && (
-                          <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase">Discount %</label>
-                            <input
-                              type="number"
-                              value={pack.discountPercent || ''}
-                              onChange={e => handleUpdatePack(index, 'discountPercent', Number(e.target.value))}
-                              className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         );
+
+
 
       default:
         return <div>Select a tab</div>;
@@ -1045,14 +1179,12 @@ export const ProductsPage = () => {
                 >
                   <FiMessageSquare className="w-4 h-4" /> FAQs
                 </button>
-                {formData.productType === 'configurable' && (
-                  <button
-                    onClick={() => setActiveTab('configuration')}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'configuration' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
-                  >
-                    <FiLayers className="w-4 h-4" /> Configuration
-                  </button>
-                )}
+                <button
+                  onClick={() => setActiveTab('configuration')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'configuration' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <FiLayers className="w-4 h-4" /> Configuration
+                </button>
               </div>
 
               {/* Content Area */}

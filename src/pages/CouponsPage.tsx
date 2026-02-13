@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiPlus, FiTrash2, FiTag, FiCopy, FiX } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiTag, FiX } from 'react-icons/fi';
 import { CouponService, Coupon } from '../services/coupon.service';
 export const CouponsPage = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);

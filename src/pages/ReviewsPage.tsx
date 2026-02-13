@@ -27,6 +27,8 @@ export const ReviewsPage = () => {
     manualName: '',
     rating: 5,
     comment: '',
+    images: '',
+    video: '',
     date: new Date().toISOString().split('T')[0] // Default today
   });
 
@@ -77,10 +79,12 @@ export const ReviewsPage = () => {
         manualName: newReview.manualName,
         rating: newReview.rating,
         comment: newReview.comment,
+        images: newReview.images ? newReview.images.split(',').map((url: any) => url.trim()).filter((url: any) => url) : [],
+        video: newReview.video,
         createdAt: newReview.date // Optional override if API supports it
       });
       setIsModalOpen(false);
-      setNewReview({ productId: '', manualName: '', rating: 5, comment: '', date: new Date().toISOString().split('T')[0] });
+      setNewReview({ productId: '', manualName: '', rating: 5, comment: '', images: '', video: '', date: new Date().toISOString().split('T')[0] });
       fetchReviews();
     } catch (error) {
       console.error("Failed to create review", error);
@@ -293,6 +297,28 @@ export const ReviewsPage = () => {
                   onChange={e => setNewReview({ ...newReview, comment: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg"
                   placeholder="Great product..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Image URLs (comma separated)</label>
+                <input
+                  type="text"
+                  value={newReview.images}
+                  onChange={(e: any) => setNewReview({ ...newReview, images: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                  placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Video URL (optional)</label>
+                <input
+                  type="text"
+                  value={newReview.video}
+                  onChange={(e: any) => setNewReview({ ...newReview, video: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                  placeholder="https://example.com/video.mp4"
                 />
               </div>
             </div>

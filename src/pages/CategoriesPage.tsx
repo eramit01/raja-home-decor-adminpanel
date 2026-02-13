@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiImage, FiX, FiCheck } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiCheck } from 'react-icons/fi';
 import { categoryService, Category } from '../services/category.service';
 
 export const CategoriesPage = () => {
     const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true); // Unused
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState<Partial<Category>>({});
 
@@ -14,7 +14,7 @@ export const CategoriesPage = () => {
 
     const loadCategories = async () => {
         try {
-            setLoading(true);
+            // setLoading(true);
             const response = await categoryService.getCategories();
             // Adjust based on actual API response structure. 
             // If response is { categories: [] }, use response.categories
@@ -23,7 +23,7 @@ export const CategoriesPage = () => {
         } catch (error) {
             console.error("Failed to load categories", error);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiPrinter, FiClock, FiTruck, FiCheckCircle, FiXCircle, FiPackage, FiMapPin, FiPhone, FiMail } from 'react-icons/fi';
+import { FiArrowLeft, FiPrinter, FiClock, FiCheckCircle, FiPackage, FiMapPin, FiPhone, FiMail } from 'react-icons/fi';
 import { orderService, Order } from '../services/order.service';
 
 export const OrderDetailsPage = () => {
@@ -204,7 +204,7 @@ export const OrderDetailsPage = () => {
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-gray-600">Status</span>
                             <span className={`px-2 py-1 text-xs font-semibold rounded ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' :
-                                    order.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                                order.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                                 }`}>
                                 {order.paymentStatus}
                             </span>
