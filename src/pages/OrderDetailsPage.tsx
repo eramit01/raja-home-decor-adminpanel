@@ -39,11 +39,30 @@ export const OrderDetailsPage = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'Pending': return 'bg-yellow-100 text-yellow-700';
+            case 'Payment Success': return 'bg-green-100 text-green-700';
+            case 'Pending Verification': return 'bg-purple-100 text-purple-700 font-bold animate-pulse';
             case 'Processing': return 'bg-blue-100 text-blue-700';
             case 'Shipped': return 'bg-indigo-100 text-indigo-700';
             case 'Delivered': return 'bg-green-100 text-green-700';
             case 'Cancelled': return 'bg-red-100 text-red-700';
             default: return 'bg-gray-100 text-gray-700';
+        }
+    };
+
+    const handleVerifyOrder = async (isVerified: boolean) => {
+        if (order) {
+            try {
+                const response = await orderService.manualVerifyOrder(order.id, isVerified);
+                if (response.success) {
+                    setOrder({
+                        ...order,
+                        isVerified: isVerified,
+                        status: isVerified ? 'Processing' : 'Cancelled'
+                    });
+                }
+            } catch (error) {
+                console.error("Verification failed", error);
+            }
         }
     };
 
@@ -83,6 +102,35 @@ export const OrderDetailsPage = () => {
                 </div>
             </div>
 
+            {/* Verification Banner */}
+            {order.status === 'Pending Verification' && !order.isVerified && (
+                <div className="bg-purple-600 p-4 rounded-xl text-white shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/20 rounded-full animate-bounce">
+                            <FiPhone className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold">Manual Verification Required</h2>
+                            <p className="text-sm opacity-90">Call the customer at <span className="underline font-bold">{order.customer.phone}</span> to confirm this order.</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => handleVerifyOrder(false)}
+                            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-all"
+                        >
+                            Mark as Fake/Cancel
+                        </button>
+                        <button
+                            onClick={() => handleVerifyOrder(true)}
+                            className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold shadow-md transition-all flex items-center gap-2"
+                        >
+                            <FiCheckCircle /> Confirm & Verify
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Order Items */}
                 <div className="lg:col-span-2 space-y-6">
@@ -100,7 +148,29 @@ export const OrderDetailsPage = () => {
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="font-medium text-gray-900">{item.name}</h3>
-                                        <p className="text-sm text-gray-500">ID: {item.productId}</p>
+                                        <div className="mt-1 space-y-0.5">
+                                            {item.variant && (
+                                                <p className="text-xs text-gray-500">
+                                                    <span className="font-medium">Variant:</span> {item.variant.label}
+                                                </p>
+                                            )}
+                                            {item.pack && (
+                                                <p className="text-xs text-green-600 font-bold">
+                                                    {item.pack.label}
+                                                </p>
+                                            )}
+                                            {item.style && (
+                                                <p className="text-xs text-gray-500">
+                                                    <span className="font-medium">Style:</span> {item.style.label}
+                                                </p>
+                                            )}
+                                            {item.addOns && item.addOns.length > 0 && (
+                                                <p className="text-xs text-purple-600">
+                                                    <span className="font-medium">Add-ons:</span> {item.addOns.map(a => a.label).join(', ')}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 mt-1 uppercase">SKU: {item.variant?.sku || 'N/A'}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="font-medium text-gray-900">₹{item.price} x {item.quantity}</p>

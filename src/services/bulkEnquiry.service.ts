@@ -5,13 +5,13 @@ export interface BulkEnquiry {
     id?: string;
     name: string;
     email: string;
-    mobile: string;
-    category: string;
-    quantity: string | number;
+    phone: string;
+    company?: string;
+    category?: string;
+    quantity: string;
     message: string;
-    status: 'new' | 'contacted' | 'converted' | 'archived';
+    status: 'pending' | 'contacted' | 'confirmed' | 'rejected' | 'archived';
     createdAt: string;
-    companyName?: string;
     adminNotes?: string;
 }
 

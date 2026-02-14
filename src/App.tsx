@@ -10,6 +10,7 @@ import { ReviewsPage } from './pages/ReviewsPage';
 import { BannersPage } from './pages/BannersPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { CouponsPage } from './pages/CouponsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         <Route path="banners" element={<BannersPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="coupons" element={<CouponsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );

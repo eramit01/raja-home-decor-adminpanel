@@ -7,6 +7,10 @@ export interface OrderItem {
     image: string;
     price: number;
     quantity: number;
+    variant?: { label: string; price: number; sku?: string };
+    pack?: { label: string; price: number };
+    style?: { label: string; priceAdjustment: number };
+    addOns?: { label: string; price: number }[];
 }
 
 export interface Order {
@@ -31,9 +35,11 @@ export interface Order {
     subtotal: number;
     shippingCharges: number;
     total: number;
-    status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+    status: 'Pending' | 'Payment Success' | 'Pending Verification' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
     paymentStatus: 'Paid' | 'Pending' | 'Failed';
     paymentMethod: 'COD' | 'Online';
+    isVerified: boolean;
+    ipAddress?: string;
     createdAt: string;
 }
 
@@ -46,7 +52,7 @@ const mapOrder = (o: any): Order => ({
     orderNumber: o.orderNumber,
     customer: {
         name: o.shippingAddress?.name || o.user?.name || 'Unknown',
-        email: o.user?.email || 'N/A',
+        email: o.shippingAddress?.email || o.user?.email || 'N/A',
         phone: o.shippingAddress?.phone || o.user?.phone || 'N/A',
         address: `${o.shippingAddress?.address}, ${o.shippingAddress?.city}, ${o.shippingAddress?.pincode}`
     },
@@ -57,19 +63,27 @@ const mapOrder = (o: any): Order => ({
         name: i.name || i.product?.name,
         image: i.image || i.product?.image,
         price: i.price,
-        quantity: i.quantity
+        quantity: i.quantity,
+        variant: i.variant,
+        pack: i.pack,
+        style: i.style,
+        addOns: i.addOns
     })),
     subtotal: o.subtotal || 0,
     shippingCharges: o.shippingCharges || 0,
     total: o.total,
     status: o.status === 'pending_payment' ? 'Pending' :
-        o.status === 'confirmed' ? 'Processing' :
-            o.status === 'shipped' ? 'Shipped' :
-                o.status === 'delivered' ? 'Delivered' :
-                    o.status === 'cancelled' ? 'Cancelled' : o.status,
+        o.status === 'payment_success' ? 'Payment Success' :
+            o.status === 'pending_verification' ? 'Pending Verification' :
+                o.status === 'confirmed' ? 'Processing' :
+                    o.status === 'shipped' ? 'Shipped' :
+                        o.status === 'delivered' ? 'Delivered' :
+                            o.status === 'cancelled' ? 'Cancelled' : o.status,
     paymentStatus: o.paymentStatus === 'verified' ? 'Paid' :
         o.paymentStatus === 'failed' ? 'Failed' : 'Pending',
     paymentMethod: o.paymentMethod === 'cod' ? 'COD' : 'Online',
+    isVerified: o.isVerified || false,
+    ipAddress: o.ipAddress,
     createdAt: o.createdAt
 });
 
@@ -109,5 +123,10 @@ export const orderService = {
 
         const response = await api.patch(`/orders/${id}/status`, { status: backendStatus });
         return response;
+    },
+
+    manualVerifyOrder: async (id: string, isVerified: boolean) => {
+        const response = await api.post(`/orders/${id}/verify`, { isVerified });
+        return response.data;
     }
 };

@@ -23,15 +23,12 @@ interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
     price: number;
     originalPrice?: number;
     stock?: number;
-    image?: string;
-    isDefault?: boolean;
     packs?: Array<{
       _id?: string;
       label: string;
       quantity: number;
       price: number;
       originalPrice?: number;
-      isDefault?: boolean;
     }>;
   }>;
 
@@ -39,7 +36,6 @@ interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
     _id?: string;
     label: string;
     priceAdjustment: number;
-    image?: string;
   }>;
 
   addOns?: Array<{
@@ -726,13 +722,14 @@ export const ProductsPage = () => {
       case 'configuration':
         return (
           <div className="space-y-8">
-
-            {/* --- VARIANTS SECTION (Universal) --- */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
+            {/* --- VARIANTS SECTION --- */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-800">Variants</h3>
-                  <p className="text-sm text-gray-500">Add sizes, colors, or other variations.</p>
+                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <FiLayers className="text-blue-600" /> Product Variants
+                  </h3>
+                  <p className="text-sm text-gray-500">Add different sizes, colors, or material variations for this product.</p>
                 </div>
                 <button
                   onClick={() => setFormData(prev => ({
@@ -741,92 +738,105 @@ export const ProductsPage = () => {
                       label: '', price: prev.price || 0, stock: 0, packs: []
                     }]
                   }))}
-                  className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-sm transition-all active:scale-95"
                 >
                   <FiPlus /> Add Variant
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="p-4 space-y-4">
                 {formData.variants?.map((variant, vIndex) => (
-                  <div key={vIndex} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <div className="flex gap-4 items-start mb-4">
-                      <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div key={vIndex} className="bg-gray-50/50 border border-gray-100 rounded-xl p-4 relative group">
+                    <button
+                      onClick={() => {
+                        const newVariants = formData.variants?.filter((_, i) => i !== vIndex);
+                        setFormData({ ...formData, variants: newVariants });
+                      }}
+                      className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Variant Label</label>
                         <input
-                          placeholder="Label (e.g. Small, Red)"
+                          placeholder="e.g. Small, Red, 500ml"
                           value={variant.label}
                           onChange={e => {
-                            const newVariants = [...(formData.variants || [])];
-                            newVariants[vIndex].label = e.target.value;
+                            const newVariants = (formData.variants || []).map((v, i) =>
+                              i === vIndex ? { ...v, label: e.target.value } : v
+                            );
                             setFormData({ ...formData, variants: newVariants });
                           }}
-                          className="px-3 py-2 border rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">SKU</label>
                         <input
                           placeholder="SKU"
                           value={variant.sku || ''}
                           onChange={e => {
-                            const newVariants = [...(formData.variants || [])];
-                            newVariants[vIndex].sku = e.target.value;
+                            const newVariants = (formData.variants || []).map((v, i) =>
+                              i === vIndex ? { ...v, sku: e.target.value } : v
+                            );
                             setFormData({ ...formData, variants: newVariants });
                           }}
-                          className="px-3 py-2 border rounded-lg"
-                        />
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
-                          <input
-                            type="number"
-                            placeholder="Price"
-                            value={variant.price}
-                            onChange={e => {
-                              const newVariants = [...(formData.variants || [])];
-                              newVariants[vIndex].price = Number(e.target.value);
-                              setFormData({ ...formData, variants: newVariants });
-                            }}
-                            className="w-full pl-6 px-3 py-2 border rounded-lg"
-                          />
-                        </div>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">MRP</span>
-                          <input
-                            type="number"
-                            placeholder="Org Price"
-                            value={variant.originalPrice || ''}
-                            onChange={e => {
-                              const newVariants = [...(formData.variants || [])];
-                              newVariants[vIndex].originalPrice = e.target.value ? Number(e.target.value) : undefined;
-                              setFormData({ ...formData, variants: newVariants });
-                            }}
-                            className="w-full pl-8 px-3 py-2 border rounded-lg text-sm"
-                          />
-                        </div>
-                        <input
-                          type="number"
-                          placeholder="Stock"
-                          value={variant.stock}
-                          onChange={e => {
-                            const newVariants = [...(formData.variants || [])];
-                            newVariants[vIndex].stock = Number(e.target.value);
-                            setFormData({ ...formData, variants: newVariants });
-                          }}
-                          className="px-3 py-2 border rounded-lg"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
                         />
                       </div>
-                      <button
-                        onClick={() => {
-                          const newVariants = formData.variants?.filter((_, i) => i !== vIndex);
-                          setFormData({ ...formData, variants: newVariants });
-                        }}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded"
-                      >
-                        <FiTrash2 />
-                      </button>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Price (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={variant.price}
+                          onChange={e => {
+                            const newVariants = (formData.variants || []).map((v, i) =>
+                              i === vIndex ? { ...v, price: Number(e.target.value) } : v
+                            );
+                            setFormData({ ...formData, variants: newVariants });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none font-semibold text-blue-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">MRP (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="MRP"
+                          value={variant.originalPrice || ''}
+                          onChange={e => {
+                            const newVariants = (formData.variants || []).map((v, i) =>
+                              i === vIndex ? { ...v, originalPrice: e.target.value ? Number(e.target.value) : undefined } : v
+                            );
+                            setFormData({ ...formData, variants: newVariants });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none text-gray-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Stock</label>
+                        <input
+                          type="number"
+                          placeholder="Qty"
+                          value={variant.stock}
+                          onChange={e => {
+                            const newVariants = (formData.variants || []).map((v, i) =>
+                              i === vIndex ? { ...v, stock: Number(e.target.value) } : v
+                            );
+                            setFormData({ ...formData, variants: newVariants });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                        />
+                      </div>
                     </div>
 
-                    {/* Variant Packs */}
-                    <div className="pl-4 border-l-2 border-gray-200 ml-2">
+                    {/* Packs */}
+                    <div className="mt-4 pt-4 border-t border-gray-100">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-bold text-gray-500 uppercase">Packs for {variant.label || 'Variant'}</span>
+                        <span className="text-xs font-bold text-gray-400 uppercase">Pack Options</span>
                         <button
                           onClick={() => {
                             const newVariants = [...(formData.variants || [])];
@@ -834,208 +844,262 @@ export const ProductsPage = () => {
                             newVariants[vIndex].packs!.push({ label: 'Pack of ', quantity: 2, price: 0 });
                             setFormData({ ...formData, variants: newVariants });
                           }}
-                          className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                          className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
                         >
                           <FiPlus size={10} /> Add Pack
                         </button>
                       </div>
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                         {variant.packs?.map((pack, pIndex) => (
-                          <div key={pIndex} className="flex gap-2 items-center">
-                            <input
-                              placeholder="Pack Label"
-                              value={pack.label}
-                              onChange={e => {
-                                const newVariants = [...(formData.variants || [])];
-                                newVariants[vIndex].packs![pIndex].label = e.target.value;
-                                setFormData({ ...formData, variants: newVariants });
-                              }}
-                              className="flex-1 px-2 py-1 border rounded text-sm"
-                            />
-                            <input
-                              type="number"
-                              placeholder="Qty"
-                              value={pack.quantity}
-                              onChange={e => {
-                                const newVariants = [...(formData.variants || [])];
-                                newVariants[vIndex].packs![pIndex].quantity = Number(e.target.value);
-                                setFormData({ ...formData, variants: newVariants });
-                              }}
-                              className="w-16 px-2 py-1 border rounded text-sm"
-                            />
-                            <div className="relative w-24">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">₹</span>
-                              <input
-                                type="number"
-                                placeholder="Price"
-                                value={pack.price}
-                                onChange={e => {
-                                  const newVariants = [...(formData.variants || [])];
-                                  newVariants[vIndex].packs![pIndex].price = Number(e.target.value);
-                                  setFormData({ ...formData, variants: newVariants });
-                                }}
-                                className="w-full pl-4 px-2 py-1 border rounded text-sm"
-                              />
-                            </div>
-                            <div className="relative w-24">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">MRP</span>
-                              <input
-                                type="number"
-                                placeholder="MRP"
-                                value={pack.originalPrice || ''}
-                                onChange={e => {
-                                  const newVariants = [...(formData.variants || [])];
-                                  newVariants[vIndex].packs![pIndex].originalPrice = e.target.value ? Number(e.target.value) : undefined;
-                                  setFormData({ ...formData, variants: newVariants });
-                                }}
-                                className="w-full pl-8 px-2 py-1 border rounded text-sm"
-                              />
-                            </div>
+                          <div key={pIndex} className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all relative group/pack">
                             <button
                               onClick={() => {
-                                const newVariants = [...(formData.variants || [])];
-                                newVariants[vIndex].packs = newVariants[vIndex].packs?.filter((_, i) => i !== pIndex);
+                                const newVariants = (formData.variants || []).map((v, i) => {
+                                  if (i !== vIndex) return v;
+                                  return { ...v, packs: v.packs?.filter((_, j) => j !== pIndex) };
+                                });
                                 setFormData({ ...formData, variants: newVariants });
                               }}
-                              className="text-red-400 hover:text-red-600"
+                              className="absolute -top-2 -right-2 bg-white text-gray-400 hover:text-red-500 rounded-full shadow-md p-1 opacity-0 group-hover/pack:opacity-100 transition-opacity z-10"
                             >
-                              <FiX />
+                              <FiX size={14} />
                             </button>
+
+                            <div className="grid grid-cols-3 gap-2 mb-3">
+                              <div className="col-span-2">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Pack Label</label>
+                                <input
+                                  placeholder="e.g. Pack of 2"
+                                  value={pack.label}
+                                  onChange={e => {
+                                    const newVariants = (formData.variants || []).map((v, i) => {
+                                      if (i !== vIndex) return v;
+                                      const newPacks = (v.packs || []).map((p, j) =>
+                                        j === pIndex ? { ...p, label: e.target.value } : p
+                                      );
+                                      return { ...v, packs: newPacks };
+                                    });
+                                    setFormData({ ...formData, variants: newVariants });
+                                  }}
+                                  className="w-full px-3 py-1.5 border border-gray-100 rounded-lg text-xs bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Quantity</label>
+                                <input
+                                  type="number"
+                                  placeholder="2"
+                                  value={pack.quantity}
+                                  onChange={e => {
+                                    const newVariants = (formData.variants || []).map((v, i) => {
+                                      if (i !== vIndex) return v;
+                                      const newPacks = (v.packs || []).map((p, j) =>
+                                        j === pIndex ? { ...p, quantity: Number(e.target.value) } : p
+                                      );
+                                      return { ...v, packs: newPacks };
+                                    });
+                                    setFormData({ ...formData, variants: newVariants });
+                                  }}
+                                  className="w-full px-2 py-1.5 border border-gray-100 rounded-lg text-xs text-center font-bold bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-700 uppercase mb-1">Selling Price</label>
+                                <div className="relative">
+                                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-xs">₹</span>
+                                  <input
+                                    type="number"
+                                    placeholder="Price"
+                                    value={pack.price}
+                                    onChange={e => {
+                                      const newVariants = (formData.variants || []).map((v, i) => {
+                                        if (i !== vIndex) return v;
+                                        const newPacks = (v.packs || []).map((p, j) =>
+                                          j === pIndex ? { ...p, price: Number(e.target.value) } : p
+                                        );
+                                        return { ...v, packs: newPacks };
+                                      });
+                                      setFormData({ ...formData, variants: newVariants });
+                                    }}
+                                    className="w-full pl-6 pr-3 py-1.5 border border-gray-100 rounded-lg text-xs font-bold text-blue-600 bg-blue-50/30 focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">MRP (Original)</label>
+                                <div className="relative">
+                                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
+                                  <input
+                                    type="number"
+                                    placeholder="MRP"
+                                    value={pack.originalPrice || ''}
+                                    onChange={e => {
+                                      const newVariants = (formData.variants || []).map((v, i) => {
+                                        if (i !== vIndex) return v;
+                                        const newPacks = (v.packs || []).map((p, j) =>
+                                          j === pIndex ? { ...p, originalPrice: e.target.value ? Number(e.target.value) : undefined } : p
+                                        );
+                                        return { ...v, packs: newPacks };
+                                      });
+                                      setFormData({ ...formData, variants: newVariants });
+                                    }}
+                                    className="w-full pl-6 pr-3 py-1.5 border border-gray-100 rounded-lg text-xs text-gray-500 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all"
+                                  />
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
                 ))}
-
-                {(!formData.variants || formData.variants.length === 0) && (
-                  <div className="text-center p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                    <p className="text-gray-500 mb-2">No variants added. Product will use Base Price.</p>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* --- STYLES SECTION --- */}
-            <div className="space-y-4 border-t pt-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">Styles</h3>
-                <button
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    styles: [...(prev.styles || []), { label: '', priceAdjustment: 0 }]
-                  }))}
-                  className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
-                >
-                  <FiPlus className="w-4 h-4" /> Add Style
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {formData.styles?.map((style, index) => (
-                  <div key={index} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg">
-                    <input
-                      placeholder="Style Name (e.g. Gold Lid)"
-                      value={style.label}
-                      onChange={e => {
-                        const newStyles = [...(formData.styles || [])];
-                        newStyles[index].label = e.target.value;
-                        setFormData({ ...formData, styles: newStyles });
-                      }}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg"
-                    />
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">+₹</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* --- STYLES SECTION --- */}
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit">
+                <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <FiGlobe className="text-blue-600" /> Options & Styles
+                  </h3>
+                  <button
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      styles: [...(prev.styles || []), { label: '', priceAdjustment: 0 }]
+                    }))}
+                    className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-full hover:bg-blue-100 flex items-center gap-1 transition-colors"
+                  >
+                    <FiPlus size={12} /> Add Style
+                  </button>
+                </div>
+                <div className="p-4 space-y-3">
+                  {formData.styles?.map((style, index) => (
+                    <div key={index} className="flex gap-3 items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
                       <input
-                        type="number"
-                        placeholder="Adj."
-                        value={style.priceAdjustment}
+                        placeholder="Style (e.g. With Cap, Gift Box)"
+                        value={style.label}
                         onChange={e => {
-                          const newStyles = [...(formData.styles || [])];
-                          newStyles[index].priceAdjustment = Number(e.target.value);
+                          const newStyles = (formData.styles || []).map((s, i) =>
+                            i === index ? { ...s, label: e.target.value } : s
+                          );
                           setFormData({ ...formData, styles: newStyles });
                         }}
-                        className="w-20 pl-7 pr-2 py-2 border border-gray-200 rounded-lg"
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
                       />
+                      <div className="relative w-28">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-xs">+₹</span>
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={style.priceAdjustment}
+                          onChange={e => {
+                            const newStyles = (formData.styles || []).map((s, i) =>
+                              i === index ? { ...s, priceAdjustment: Number(e.target.value) } : s
+                            );
+                            setFormData({ ...formData, styles: newStyles });
+                          }}
+                          className="w-full pl-8 pr-2 py-2 border border-gray-200 rounded-lg text-sm font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, styles: prev.styles?.filter((_, i) => i !== index) }))}
+                        className="text-gray-300 hover:text-red-500 transition-colors"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setFormData(prev => ({ ...prev, styles: prev.styles?.filter((_, i) => i !== index) }))}
-                      className="text-red-500 p-2 hover:bg-red-50 rounded"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                ))}
+                  ))}
+                  {(!formData.styles || formData.styles.length === 0) && (
+                    <p className="text-center py-6 text-gray-400 text-sm italic">No styles defined.</p>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* --- ADD-ONS SECTION --- */}
-            <div className="space-y-4 border-t pt-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">Add-Ons</h3>
-                <button
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    addOns: [...(prev.addOns || []), { label: '', price: 0 }]
-                  }))}
-                  className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
-                >
-                  <FiPlus className="w-4 h-4" /> Add Add-On
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {formData.addOns?.map((addon, index) => (
-                  <div key={index} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg">
-                    <input
-                      placeholder="Add-On Name (e.g. Gift Wrap)"
-                      value={addon.label}
-                      onChange={e => {
-                        const newAddOns = [...(formData.addOns || [])];
-                        newAddOns[index].label = e.target.value;
-                        setFormData({ ...formData, addOns: newAddOns });
-                      }}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg"
-                    />
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">₹</span>
+              {/* --- ADD-ONS SECTION --- */}
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit">
+                <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <FiPlus className="text-blue-600" /> Premium Add-Ons
+                  </h3>
+                  <button
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      addOns: [...(prev.addOns || []), { label: '', price: 0 }]
+                    }))}
+                    className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-full hover:bg-blue-100 flex items-center gap-1 transition-colors"
+                  >
+                    <FiPlus size={12} /> Add Add-On
+                  </button>
+                </div>
+                <div className="p-4 space-y-3">
+                  {formData.addOns?.map((addon, index) => (
+                    <div key={index} className="flex gap-3 items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
                       <input
-                        type="number"
-                        placeholder="Price"
-                        value={addon.price}
+                        placeholder="Add-On (e.g. Extension, Warranty)"
+                        value={addon.label}
                         onChange={e => {
-                          const newAddOns = [...(formData.addOns || [])];
-                          newAddOns[index].price = Number(e.target.value);
+                          const newAddOns = (formData.addOns || []).map((a, i) =>
+                            i === index ? { ...a, label: e.target.value } : a
+                          );
                           setFormData({ ...formData, addOns: newAddOns });
                         }}
-                        className="w-20 pl-6 pr-2 py-2 border border-gray-200 rounded-lg"
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
                       />
+                      <div className="relative w-28">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-xs">₹</span>
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={addon.price}
+                          onChange={e => {
+                            const newAddOns = (formData.addOns || []).map((a, i) =>
+                              i === index ? { ...a, price: Number(e.target.value) } : a
+                            );
+                            setFormData({ ...formData, addOns: newAddOns });
+                          }}
+                          className="w-full pl-6 pr-2 py-2 border border-gray-200 rounded-lg text-sm font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, addOns: prev.addOns?.filter((_, i) => i !== index) }))}
+                        className="text-gray-300 hover:text-red-500 transition-colors"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setFormData(prev => ({ ...prev, addOns: prev.addOns?.filter((_, i) => i !== index) }))}
-                      className="text-red-500 p-2 hover:bg-red-50 rounded"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                ))}
+                  ))}
+                  {(!formData.addOns || formData.addOns.length === 0) && (
+                    <p className="text-center py-6 text-gray-400 text-sm italic">No add-ons defined.</p>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Fragrances (Legacy/Specific - Keep optional) */}
-            <div className="space-y-4 border-t pt-6">
-              <div className="flex justify-between items-center cursor-pointer" onClick={() => {
-                // Toggle visibility if we want, or just always show
-              }}>
-                <h3 className="text-base font-semibold text-gray-600">Fragrances (Optional)</h3>
-              </div>
+            {/* Fragrances (Optional Chips) */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Fragrances (Optional Selection)</h3>
               <div className="flex flex-wrap gap-2">
                 {formData.fragrances?.map(frag => (
-                  <span key={frag} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  <span key={frag} className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold border border-blue-100 flex items-center gap-2 shadow-sm">
                     {frag}
-                    <button onClick={() => handleRemoveFragrance(frag)}><FiX size={14} /></button>
+                    <button
+                      onClick={() => handleRemoveFragrance(frag)}
+                      className="hover:text-red-500 transition-colors"
+                    >
+                      <FiX size={14} />
+                    </button>
                   </span>
                 ))}
-                <button onClick={handleAddFragrance} className="px-3 py-1 border border-dashed border-gray-300 rounded-full text-gray-500 hover:border-blue-500 hover:text-blue-500 flex items-center gap-1 text-sm">
-                  <FiPlus size={14} /> Add Fragrance
+                <button
+                  onClick={handleAddFragrance}
+                  className="px-4 py-1.5 border border-dashed border-gray-300 rounded-full text-gray-400 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 flex items-center gap-1 text-xs font-bold transition-all"
+                >
+                  <FiPlus size={14} /> Add New Fragrance
                 </button>
               </div>
             </div>

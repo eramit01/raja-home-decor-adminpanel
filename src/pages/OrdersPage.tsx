@@ -42,7 +42,10 @@ export const OrdersPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pending': return 'bg-yellow-100 text-yellow-700';
+      case 'Pending Payment': return 'bg-yellow-100 text-yellow-700';
+      case 'Payment Success': return 'bg-purple-100 text-purple-700';
+      case 'Pending Verification': return 'bg-orange-100 text-orange-700 border border-orange-200 animate-pulse';
+      case 'Confirmed': return 'bg-green-100 text-green-700';
       case 'Processing': return 'bg-blue-100 text-blue-700';
       case 'Shipped': return 'bg-indigo-100 text-indigo-700';
       case 'Delivered': return 'bg-green-100 text-green-700';
@@ -77,7 +80,10 @@ export const OrdersPage = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="All">All Status</option>
-            <option value="Pending">Pending</option>
+            <option value="Pending Payment">Pending Payment</option>
+            <option value="Payment Success">Payment Success</option>
+            <option value="Pending Verification">Pending Verification</option>
+            <option value="Confirmed">Confirmed</option>
             <option value="Processing">Processing</option>
             <option value="Shipped">Shipped</option>
             <option value="Delivered">Delivered</option>

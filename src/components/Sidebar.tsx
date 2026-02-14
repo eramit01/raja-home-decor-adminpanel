@@ -8,6 +8,7 @@ import {
   FiImage,
   FiList,
   FiTag,
+  FiSettings,
 } from 'react-icons/fi';
 
 const menuItems = [
@@ -19,6 +20,7 @@ const menuItems = [
   { path: '/banners', icon: FiImage, label: 'Banners' },
   { path: '/categories', icon: FiList, label: 'Categories' },
   { path: '/coupons', icon: FiTag, label: 'Coupons' },
+  { path: '/settings', icon: FiSettings, label: 'Settings' },
 ];
 
 export const Sidebar = () => {
