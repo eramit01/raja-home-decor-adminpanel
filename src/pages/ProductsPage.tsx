@@ -36,6 +36,8 @@ interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
     _id?: string;
     label: string;
     priceAdjustment: number;
+    image?: string;
+    color?: string;
   }>;
 
   addOns?: Array<{
@@ -49,7 +51,18 @@ interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
   // Legacy (Keep for fallback if needed, or remove if fully replacing)
   sizes?: Array<{ name: string; price: number }>;
   fragrances?: string[];
-  packs?: Array<{ label: string; quantity: number; pricingType: 'auto' | 'fixed' | 'discount'; fixedPrice?: number; discountPercent?: number }>;
+  colors?: Array<{
+    label: string;
+    hex: string;
+    image?: string;
+  }>;
+  packs?: Array<{
+    label: string;
+    quantity: number;
+    price: number;
+    originalPrice?: number;
+    pricingType?: 'auto' | 'fixed' | 'discount'; // Keep optional for legacy compatibility if needed
+  }>;
   allowMixedFragrance?: boolean;
 }
 
@@ -722,6 +735,112 @@ export const ProductsPage = () => {
       case 'configuration':
         return (
           <div className="space-y-8">
+            {/* --- PACKS SECTION (BASE PRODUCT) --- */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <FiPackage className="text-blue-600" /> Base Product Packs
+                  </h3>
+                  <p className="text-sm text-gray-500">Configure packs for the base product (e.g., Pack of 1, Pack of 2). This overrides the single price if selected.</p>
+                </div>
+                <button
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    packs: [...(prev.packs || []), {
+                      label: '', quantity: 1, price: prev.price || 0, originalPrice: prev.originalPrice || 0, pricingType: 'fixed'
+                    }]
+                  }))}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                >
+                  <FiPlus /> Add Pack
+                </button>
+              </div>
+
+              <div className="p-4 space-y-4">
+                {(!formData.packs || formData.packs.length === 0) && (
+                  <div className="text-center py-8 text-gray-400">
+                    No packs configured. The product will be sold as a single unit or via variants.
+                  </div>
+                )}
+                {formData.packs?.map((pack, pIndex) => (
+                  <div key={pIndex} className="bg-gray-50/50 border border-gray-100 rounded-xl p-4 relative group">
+                    <button
+                      onClick={() => {
+                        const newPacks = formData.packs?.filter((_, i) => i !== pIndex);
+                        setFormData({ ...formData, packs: newPacks });
+                      }}
+                      className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Pack Label</label>
+                        <input
+                          placeholder="e.g. Pack of 2"
+                          value={pack.label}
+                          onChange={e => {
+                            const newPacks = (formData.packs || []).map((p, i) =>
+                              i === pIndex ? { ...p, label: e.target.value } : p
+                            );
+                            setFormData({ ...formData, packs: newPacks });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Quantity</label>
+                        <input
+                          type="number"
+                          placeholder="Qty"
+                          value={pack.quantity}
+                          onChange={e => {
+                            const newPacks = (formData.packs || []).map((p, i) =>
+                              i === pIndex ? { ...p, quantity: Number(e.target.value) } : p
+                            );
+                            setFormData({ ...formData, packs: newPacks });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Price (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={pack.price || ''} // Handle undefined
+                          onChange={e => {
+                            const newPacks = (formData.packs || []).map((p, i) =>
+                              i === pIndex ? { ...p, price: Number(e.target.value) } : p
+                            );
+                            setFormData({ ...formData, packs: newPacks });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Original Price (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="MRP"
+                          value={pack.originalPrice || ''} // Handle undefined
+                          onChange={e => {
+                            const newPacks = (formData.packs || []).map((p, i) =>
+                              i === pIndex ? { ...p, originalPrice: Number(e.target.value) } : p
+                            );
+                            setFormData({ ...formData, packs: newPacks });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* --- VARIANTS SECTION --- */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
@@ -979,33 +1098,50 @@ export const ProductsPage = () => {
                 </div>
                 <div className="p-4 space-y-3">
                   {formData.styles?.map((style, index) => (
-                    <div key={index} className="flex gap-3 items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
-                      <input
-                        placeholder="Style (e.g. With Cap, Gift Box)"
-                        value={style.label}
-                        onChange={e => {
-                          const newStyles = (formData.styles || []).map((s, i) =>
-                            i === index ? { ...s, label: e.target.value } : s
-                          );
-                          setFormData({ ...formData, styles: newStyles });
-                        }}
-                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
-                      />
-                      <div className="relative w-28">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-xs">+₹</span>
+                    <div key={index} className="flex flex-wrap gap-3 items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                      <div className="flex-1 min-w-[200px]">
                         <input
-                          type="number"
-                          placeholder="Price"
-                          value={style.priceAdjustment}
+                          placeholder="Style (e.g. With Cap, Gift Box)"
+                          value={style.label}
                           onChange={e => {
                             const newStyles = (formData.styles || []).map((s, i) =>
-                              i === index ? { ...s, priceAdjustment: Number(e.target.value) } : s
+                              i === index ? { ...s, label: e.target.value } : s
                             );
                             setFormData({ ...formData, styles: newStyles });
                           }}
-                          className="w-full pl-8 pr-2 py-2 border border-gray-200 rounded-lg text-sm font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-400"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
                         />
                       </div>
+                      <div className="relative w-32 shrink-0">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-sm">+₹</span>
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={style.priceAdjustment === 0 ? '' : style.priceAdjustment}
+                          onChange={e => {
+                            const newStyles = (formData.styles || []).map((s, i) =>
+                              i === index ? { ...s, priceAdjustment: e.target.value === '' ? 0 : Number(e.target.value) } : s
+                            );
+                            setFormData({ ...formData, styles: newStyles });
+                          }}
+                          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+                        />
+                      </div>
+
+                      <div className="flex-[2] min-w-[200px]">
+                        <input
+                          placeholder="Image URL (Optional)"
+                          value={style.image || ''}
+                          onChange={e => {
+                            const newStyles = (formData.styles || []).map((s, i) =>
+                              i === index ? { ...s, image: e.target.value } : s
+                            );
+                            setFormData({ ...formData, styles: newStyles });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                      </div>
+
                       <button
                         onClick={() => setFormData(prev => ({ ...prev, styles: prev.styles?.filter((_, i) => i !== index) }))}
                         className="text-gray-300 hover:text-red-500 transition-colors"
@@ -1050,19 +1186,19 @@ export const ProductsPage = () => {
                         }}
                         className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
                       />
-                      <div className="relative w-28">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-xs">₹</span>
+                      <div className="relative w-40 shrink-0">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-sm">₹</span>
                         <input
                           type="number"
                           placeholder="Price"
-                          value={addon.price}
+                          value={addon.price === 0 ? '' : addon.price}
                           onChange={e => {
                             const newAddOns = (formData.addOns || []).map((a, i) =>
-                              i === index ? { ...a, price: Number(e.target.value) } : a
+                              i === index ? { ...a, price: e.target.value === '' ? 0 : Number(e.target.value) } : a
                             );
                             setFormData({ ...formData, addOns: newAddOns });
                           }}
-                          className="w-full pl-6 pr-2 py-2 border border-gray-200 rounded-lg text-sm font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-400"
+                          className="w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg text-base font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
                         />
                       </div>
                       <button
@@ -1077,6 +1213,81 @@ export const ProductsPage = () => {
                     <p className="text-center py-6 text-gray-400 text-sm italic">No add-ons defined.</p>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* --- COLORS SECTION --- */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Product Colors</h3>
+                <button
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    colors: [...(prev.colors || []), { label: '', hex: '#000000' }]
+                  }))}
+                  className="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-full hover:bg-blue-100 flex items-center gap-1 transition-colors"
+                >
+                  <FiPlus size={12} /> Add Color
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {formData.colors?.map((color, index) => (
+                  <div key={index} className="flex flex-wrap gap-3 items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                    <div className="w-12 shrink-0">
+                      <input
+                        type="color"
+                        value={color.hex}
+                        onChange={e => {
+                          const newColors = (formData.colors || []).map((c, i) =>
+                            i === index ? { ...c, hex: e.target.value } : c
+                          );
+                          setFormData({ ...formData, colors: newColors });
+                        }}
+                        className="w-full h-[38px] p-1 border border-gray-200 rounded-lg cursor-pointer shadow-sm"
+                        title="Choose Color"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-[150px]">
+                      <input
+                        placeholder="Color Name (e.g. Midnight Blue)"
+                        value={color.label}
+                        onChange={e => {
+                          const newColors = (formData.colors || []).map((c, i) =>
+                            i === index ? { ...c, label: e.target.value } : c
+                          );
+                          setFormData({ ...formData, colors: newColors });
+                        }}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                    </div>
+
+                    <div className="flex-[2] min-w-[200px]">
+                      <input
+                        placeholder="Image URL for this color (Optional)"
+                        value={color.image || ''}
+                        onChange={e => {
+                          const newColors = (formData.colors || []).map((c, i) =>
+                            i === index ? { ...c, image: e.target.value } : c
+                          );
+                          setFormData({ ...formData, colors: newColors });
+                        }}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => setFormData(prev => ({ ...prev, colors: prev.colors?.filter((_, i) => i !== index) }))}
+                      className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+                {(!formData.colors || formData.colors.length === 0) && (
+                  <p className="text-center py-6 text-gray-400 text-sm italic">No colors defined.</p>
+                )}
               </div>
             </div>
 

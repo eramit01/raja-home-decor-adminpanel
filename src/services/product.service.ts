@@ -74,7 +74,9 @@ export interface Product {
     packs?: Array<{
         label: string;
         quantity: number;
-        pricingType: 'auto' | 'fixed' | 'discount';
+        price: number;
+        originalPrice?: number;
+        pricingType?: 'auto' | 'fixed' | 'discount';
         fixedPrice?: number;
         discountPercent?: number;
     }>;
