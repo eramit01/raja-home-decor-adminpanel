@@ -62,6 +62,11 @@ interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
     price: number;
     originalPrice?: number;
     pricingType?: 'auto' | 'fixed' | 'discount'; // Keep optional for legacy compatibility if needed
+    styles?: Array<{
+      label: string;
+      priceAdjustment: number;
+      image?: string;
+    }>;
   }>;
   allowMixedFragrance?: boolean;
 }
@@ -836,6 +841,81 @@ export const ProductsPage = () => {
                         />
                       </div>
                     </div>
+
+                    {/* Pack Specific Styles */}
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <div className="flex justify-between items-center mb-3">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Pack Specific Styles (e.g. With Cap, Gift Box)</label>
+                        <button
+                          onClick={() => {
+                            const newPacks = [...(formData.packs || [])];
+                            const currentPack = { ...newPacks[pIndex] };
+                            if (!currentPack.styles) currentPack.styles = [];
+                            currentPack.styles.push({ label: '', priceAdjustment: 0 });
+                            newPacks[pIndex] = currentPack;
+                            setFormData({ ...formData, packs: newPacks });
+                          }}
+                          className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-1 rounded hover:bg-blue-100 flex items-center gap-1 transition-colors"
+                        >
+                          <FiPlus size={10} /> Add Style to Pack
+                        </button>
+                      </div>
+
+                      {(!pack.styles || pack.styles.length === 0) && (
+                        <p className="text-[11px] text-gray-400 italic mb-2">No specific styles for this pack. Global product styles will be used if available.</p>
+                      )}
+
+                      <div className="space-y-2">
+                        {pack.styles?.map((style, sIndex) => (
+                          <div key={sIndex} className="flex gap-2 items-center bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
+                            <input
+                              placeholder="Style Name"
+                              value={style.label}
+                              onChange={e => {
+                                const newPacks = [...(formData.packs || [])];
+                                const currentPack = { ...newPacks[pIndex] };
+                                const currentStyles = [...(currentPack.styles || [])];
+                                currentStyles[sIndex] = { ...currentStyles[sIndex], label: e.target.value };
+                                currentPack.styles = currentStyles;
+                                newPacks[pIndex] = currentPack;
+                                setFormData({ ...formData, packs: newPacks });
+                              }}
+                              className="flex-1 px-2 py-1 border border-gray-100 rounded text-xs outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                            <div className="relative w-24">
+                              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-[10px]">+₹</span>
+                              <input
+                                type="number"
+                                placeholder="Price"
+                                value={style.priceAdjustment === 0 ? '' : style.priceAdjustment}
+                                onChange={e => {
+                                  const newPacks = [...(formData.packs || [])];
+                                  const currentPack = { ...newPacks[pIndex] };
+                                  const currentStyles = [...(currentPack.styles || [])];
+                                  currentStyles[sIndex] = { ...currentStyles[sIndex], priceAdjustment: Number(e.target.value) };
+                                  currentPack.styles = currentStyles;
+                                  newPacks[pIndex] = currentPack;
+                                  setFormData({ ...formData, packs: newPacks });
+                                }}
+                                className="w-full pl-5 pr-1 py-1 border border-gray-100 rounded text-xs font-bold text-blue-700 outline-none focus:ring-1 focus:ring-blue-400"
+                              />
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newPacks = [...(formData.packs || [])];
+                                const currentPack = { ...newPacks[pIndex] };
+                                currentPack.styles = currentPack.styles?.filter((_, i) => i !== sIndex);
+                                newPacks[pIndex] = currentPack;
+                                setFormData({ ...formData, packs: newPacks });
+                              }}
+                              className="text-gray-300 hover:text-red-500 transition-colors"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1174,7 +1254,7 @@ export const ProductsPage = () => {
                 </div>
                 <div className="p-4 space-y-3">
                   {formData.addOns?.map((addon, index) => (
-                    <div key={index} className="flex gap-3 items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                    <div key={index} className="flex flex-wrap gap-3 items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
                       <input
                         placeholder="Add-On (e.g. Extension, Warranty)"
                         value={addon.label}
@@ -1184,9 +1264,9 @@ export const ProductsPage = () => {
                           );
                           setFormData({ ...formData, addOns: newAddOns });
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400 min-w-[150px]"
                       />
-                      <div className="relative w-40 shrink-0">
+                      <div className="relative w-32 shrink-0">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-sm">₹</span>
                         <input
                           type="number"
@@ -1198,14 +1278,15 @@ export const ProductsPage = () => {
                             );
                             setFormData({ ...formData, addOns: newAddOns });
                           }}
-                          className="w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg text-base font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+                          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
                         />
                       </div>
                       <button
                         onClick={() => setFormData(prev => ({ ...prev, addOns: prev.addOns?.filter((_, i) => i !== index) }))}
-                        className="text-gray-300 hover:text-red-500 transition-colors"
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove Add-On"
                       >
-                        <FiTrash2 size={16} />
+                        <FiTrash2 size={18} />
                       </button>
                     </div>
                   ))}
