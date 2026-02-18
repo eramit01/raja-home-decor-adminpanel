@@ -75,7 +75,7 @@ export const CategoriesPage = () => {
                 <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
                 <button
                     onClick={handleAddNew}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 bg-accent text-primary-900 px-4 py-2 rounded-lg hover:bg-accent-hover font-bold transition-all shadow-md active:scale-95"
                 >
                     <FiPlus /> Add Category
                 </button>
@@ -108,8 +108,8 @@ export const CategoriesPage = () => {
                                 <td className="px-6 py-4 font-medium text-gray-900">{category.name}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">{category.slug}</td>
                                 <td className="px-6 py-4 text-right">
-                                    <button onClick={() => handleEdit(category)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><FiEdit2 /></button>
-                                    <button onClick={() => handleDelete(category._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 /></button>
+                                    <button onClick={() => handleEdit(category)} className="p-2 text-accent hover:bg-accent/10 rounded-lg mr-2"><FiEdit2 /></button>
+                                    <button onClick={() => handleDelete(category._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 /></button>
                                 </td>
                             </tr>
                         ))}
@@ -125,14 +125,14 @@ export const CategoriesPage = () => {
                             <button onClick={() => setIsModalOpen(false)}><FiX /></button>
                         </div>
 
-                        <div className="p-6 space-y-4">
+                        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                                 <input
                                     type="text"
                                     value={formData.name || ''}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -141,7 +141,7 @@ export const CategoriesPage = () => {
                                     type="text"
                                     value={formData.slug || ''}
                                     onChange={e => setFormData({ ...formData, slug: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
                                 />
                             </div>
 
@@ -161,7 +161,7 @@ export const CategoriesPage = () => {
                                     type="text"
                                     value={formData.banner || ''}
                                     onChange={e => setFormData({ ...formData, banner: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">This banner will be shown at the top of the category page.</p>
                             </div>
@@ -172,7 +172,7 @@ export const CategoriesPage = () => {
                                     rows={3}
                                     value={formData.description || ''}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
                                     placeholder="Category description..."
                                 />
                             </div>
@@ -186,7 +186,7 @@ export const CategoriesPage = () => {
                                             type="text"
                                             value={formData.seo?.metaTitle || ''}
                                             onChange={e => setFormData({ ...formData, seo: { ...formData.seo, metaTitle: e.target.value } })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
                                             placeholder="SEO Title"
                                         />
                                     </div>
@@ -196,7 +196,7 @@ export const CategoriesPage = () => {
                                             rows={2}
                                             value={formData.seo?.metaDescription || ''}
                                             onChange={e => setFormData({ ...formData, seo: { ...formData.seo, metaDescription: e.target.value } })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
                                             placeholder="SEO Description"
                                         />
                                     </div>
@@ -206,7 +206,7 @@ export const CategoriesPage = () => {
                                             type="text"
                                             value={formData.seo?.metaKeywords || ''}
                                             onChange={e => setFormData({ ...formData, seo: { ...formData.seo, metaKeywords: e.target.value } })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
                                             placeholder="keyword1, keyword2, keyword3"
                                         />
                                     </div>
@@ -218,17 +218,17 @@ export const CategoriesPage = () => {
                                     type="checkbox"
                                     checked={formData.isActive ?? true}
                                     onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                                    className="w-5 h-5 text-blue-600 rounded"
+                                    className="w-5 h-5 text-accent rounded focus:ring-accent"
                                 />
-                                <span>Active</span>
+                                <span className="text-sm font-medium text-gray-700">Active Status</span>
                             </div>
 
                         </div>
 
                         <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
                             <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">Cancel</button>
-                            <button onClick={handleSave} className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                                <FiCheck /> Save
+                            <button onClick={handleSave} className="px-6 py-2 bg-accent text-primary-900 font-bold rounded-lg hover:bg-accent-hover transition-all flex items-center gap-2 shadow-md active:scale-95">
+                                <FiCheck /> Save Changes
                             </button>
                         </div>
                     </div>

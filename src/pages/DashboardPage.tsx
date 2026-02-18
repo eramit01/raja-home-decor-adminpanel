@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { adminService } from '../services/admin.service';
 
 const DashboardCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) => (
-  <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-start justify-between">
+  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-start justify-between hover:shadow-md hover:border-accent/10 transition-all duration-300 group cursor-pointer">
     <div>
       <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">{title}</p>
       <h3 className="text-2xl font-bold text-gray-900 mb-2">{value}</h3>
@@ -59,7 +59,7 @@ export const DashboardPage = () => {
           trend="Live"
           trendUp={true}
           icon={FiDollarSign}
-          color="bg-purple-50 text-purple-600"
+          color="bg-accent/10 text-accent"
         />
         <DashboardCard
           title="Total Orders"
@@ -67,7 +67,7 @@ export const DashboardPage = () => {
           trend={stats.pendingOrders > 0 ? `${stats.pendingOrders} Pending` : "All Processed"}
           trendUp={true}
           icon={FiShoppingBag}
-          color="bg-blue-50 text-blue-600"
+          color="bg-accent/10 text-accent"
         />
         <DashboardCard
           title="Total Products"
@@ -75,7 +75,7 @@ export const DashboardPage = () => {
           trend="active"
           trendUp={true}
           icon={FiShoppingBag}
-          color="bg-orange-50 text-orange-600"
+          color="bg-accent/10 text-accent"
         />
         <DashboardCard
           title="Enquiries"
@@ -83,7 +83,7 @@ export const DashboardPage = () => {
           trend="Pending"
           trendUp={stats.pendingEnquiries === 0}
           icon={FiClock}
-          color="bg-red-50 text-red-600"
+          color="bg-accent/10 text-accent"
         />
       </div>
 
@@ -93,9 +93,9 @@ export const DashboardPage = () => {
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-6">
           <h2 className="font-bold text-gray-900 mb-4">Quick Actions</h2>
           <div className="flex gap-4">
-            <Link to="/orders" className="text-primary-600 hover:underline bg-blue-50 px-4 py-2 rounded-lg">View Orders</Link>
-            <Link to="/products" className="text-primary-600 hover:underline bg-orange-50 px-4 py-2 rounded-lg">Manage Products</Link>
-            <Link to="/bulk-enquiries" className="text-primary-600 hover:underline bg-purple-50 px-4 py-2 rounded-lg">B2B Enquiries</Link>
+            <Link to="/orders" className="text-primary-900 hover:text-accent bg-accent/10 hover:bg-accent/20 px-5 py-2.5 rounded-xl font-bold transition-all border border-accent/10">View Orders</Link>
+            <Link to="/products" className="text-primary-900 hover:text-accent bg-accent/10 hover:bg-accent/20 px-5 py-2.5 rounded-xl font-bold transition-all border border-accent/10">Manage Products</Link>
+            <Link to="/bulk-enquiries" className="text-primary-900 hover:text-accent bg-accent/10 hover:bg-accent/20 px-5 py-2.5 rounded-xl font-bold transition-all border border-accent/10">B2B Enquiries</Link>
           </div>
         </div>
 

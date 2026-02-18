@@ -27,9 +27,12 @@ export const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-white shadow-lg">
-      <div className="p-4">
-        <h1 className="text-xl font-bold text-primary-600">Admin Panel</h1>
+    <aside className="w-64 bg-[#141415] text-white shadow-2xl flex flex-col border-r border-accent/5">
+      <div className="p-6 border-b border-primary-800/30">
+        <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-primary-900">A</div>
+          Admin Panel
+        </h1>
       </div>
       <nav className="mt-4">
         {menuItems.map((item) => {
@@ -40,13 +43,13 @@ export const Sidebar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center px-4 py-3 ${isActive
-                ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
-                : 'text-gray-700 hover:bg-gray-50'
+              className={`flex items-center px-6 py-3.5 ${isActive
+                ? 'bg-accent text-primary-900 font-extrabold shadow-lg shadow-accent/20 mx-3 rounded-xl'
+                : 'text-primary-300'
                 }`}
             >
-              <Icon className="mr-3 text-lg" />
-              <span>{item.label}</span>
+              <Icon className={`mr-3 text-lg ${isActive ? 'text-primary-900' : 'text-primary-400'}`} />
+              <span className="tracking-wide">{item.label}</span>
             </Link>
           );
         })}

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
   FiPlus, FiEdit2, FiTrash2, FiSearch, FiX, FiCheck,
-  FiPackage, FiDollarSign, FiImage, FiList, FiGlobe, FiLayers, FiMessageSquare
+  FiPackage, FiDollarSign, FiImage, FiList, FiGlobe, FiLayers, FiMessageSquare, FiGift
 } from 'react-icons/fi';
 import { productService, Product } from '../services/product.service';
 import { categoryService, Category } from '../services/category.service';
 
 // --- Types ---
-type Tab = 'general' | 'pricing' | 'media' | 'specs' | 'seo' | 'linked' | 'faqs' | 'configuration';
+type Tab = 'general' | 'pricing' | 'media' | 'specs' | 'seo' | 'linked' | 'faqs' | 'configuration' | 'gift';
 
 interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
   newImage?: string;
@@ -69,6 +69,15 @@ interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
     }>;
   }>;
   allowMixedFragrance?: boolean;
+  giftOptions?: {
+    active: boolean;
+    price: number;
+    occasions: Array<{
+      id: string;
+      label: string;
+      designs: Array<{ id: string; image: string }>;
+    }>;
+  };
 }
 
 // --- Product Hook ---
@@ -149,7 +158,12 @@ export const ProductsPage = () => {
       isBestSeller: false,
       seo: {},
       faqs: [],
-      sections: []
+      sections: [],
+      giftOptions: {
+        active: false,
+        price: 49,
+        occasions: []
+      }
     });
     setActiveTab('general');
     setIsModalOpen(true);
@@ -324,6 +338,54 @@ export const ProductsPage = () => {
     p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // --- Gift Options Helpers ---
+  const handleAddOccasion = () => {
+    const label = prompt("Enter Occasion Name (e.g. Birthday):");
+    if (label) {
+      const id = label.toLowerCase().replace(/\s+/g, '-');
+      setFormData(prev => ({
+        ...prev,
+        giftOptions: {
+          ...(prev.giftOptions || { active: false, price: 49, occasions: [] }),
+          occasions: [...(prev.giftOptions?.occasions || []), { id, label, designs: [] }]
+        }
+      }));
+    }
+  };
+
+  const handleRemoveOccasion = (index: number) => {
+    if (confirm("Remove this occasion?")) {
+      const newOccasions = [...(formData.giftOptions?.occasions || [])];
+      newOccasions.splice(index, 1);
+      setFormData(prev => ({
+        ...prev,
+        giftOptions: { ...prev.giftOptions!, occasions: newOccasions }
+      }));
+    }
+  };
+
+  const handleAddDesign = (occIndex: number) => {
+    const imageUrl = prompt("Enter Design Image URL:");
+    if (imageUrl) {
+      const newOccasions = [...(formData.giftOptions?.occasions || [])];
+      const id = `design-${Date.now()}`;
+      newOccasions[occIndex].designs.push({ id, image: imageUrl });
+      setFormData(prev => ({
+        ...prev,
+        giftOptions: { ...prev.giftOptions!, occasions: newOccasions }
+      }));
+    }
+  };
+
+  const handleRemoveDesign = (occIndex: number, designIndex: number) => {
+    const newOccasions = [...(formData.giftOptions?.occasions || [])];
+    newOccasions[occIndex].designs.splice(designIndex, 1);
+    setFormData(prev => ({
+      ...prev,
+      giftOptions: { ...prev.giftOptions!, occasions: newOccasions }
+    }));
+  };
 
   // --- Render Tabs ---
   const renderTabContent = () => {
@@ -1398,6 +1460,143 @@ export const ProductsPage = () => {
           </div>
         );
 
+      case 'gift':
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 overflow-hidden">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <FiGift className="text-blue-600" /> Gift Customization
+                  </h3>
+                  <p className="text-sm text-gray-500">Enable personal messaging and custom tags for this product.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-bold uppercase ${formData.giftOptions?.active ? 'text-green-600' : 'text-gray-400'}`}>
+                    {formData.giftOptions?.active ? 'Active' : 'Inactive'}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={formData.giftOptions?.active || false}
+                      onChange={e => setFormData(prev => ({
+                        ...prev,
+                        giftOptions: { ...(prev.giftOptions || { active: false, price: 49, occasions: [] }), active: e.target.checked }
+                      }))}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:width-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+
+              {formData.giftOptions?.active && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                      <label className="block text-sm font-bold text-blue-900 mb-1">Personalization Fee (₹)</label>
+                      <p className="text-xs text-blue-700">Additional charge for the gift tag and message.</p>
+                    </div>
+                    <div className="relative w-32">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-bold">₹</span>
+                      <input
+                        type="number"
+                        value={formData.giftOptions?.price || 0}
+                        onChange={e => setFormData(prev => ({
+                          ...prev,
+                          giftOptions: { ...prev.giftOptions!, price: Number(e.target.value) }
+                        }))}
+                        className="w-full pl-8 pr-3 py-2 border border-blue-200 rounded-lg text-lg font-bold text-blue-900 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-bold text-gray-700 uppercase tracking-wider text-xs">Manage Occasions</h4>
+                      <button
+                        onClick={handleAddOccasion}
+                        className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-bold flex items-center gap-1 transition-all active:scale-95"
+                      >
+                        <FiPlus /> Add Occasion
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {formData.giftOptions?.occasions.map((occ, oIdx) => (
+                        <div key={occ.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 overflow-hidden relative group/occ">
+                          <button
+                            onClick={() => handleRemoveOccasion(oIdx)}
+                            className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors"
+                          >
+                            <FiTrash2 size={16} />
+                          </button>
+
+                          <div className="mb-4">
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Occasion Title</label>
+                            <input
+                              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-blue-400 outline-none"
+                              value={occ.label}
+                              onChange={e => {
+                                const newOccasions = [...formData.giftOptions!.occasions];
+                                newOccasions[oIdx].label = e.target.value;
+                                setFormData(prev => ({
+                                  ...prev,
+                                  giftOptions: { ...prev.giftOptions!, occasions: newOccasions }
+                                }));
+                              }}
+                            />
+                            <div className="text-[10px] text-gray-400 font-mono mt-1 opacity-50">ID: {occ.id}</div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Designs (Image URLs)</label>
+                              <button
+                                onClick={() => handleAddDesign(oIdx)}
+                                className="text-[10px] text-blue-600 font-bold hover:underline"
+                              >
+                                + Add Design
+                              </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {occ.designs.map((design, dIdx) => (
+                                <div key={design.id} className="relative group w-16 h-16 rounded-lg overflow-hidden border border-gray-200 shadow-sm bg-white">
+                                  <img src={design.image} alt="" className="w-full h-full object-cover" />
+                                  <button
+                                    onClick={() => handleRemoveDesign(oIdx, dIdx)}
+                                    className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <FiX size={10} />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                onClick={() => handleAddDesign(oIdx)}
+                                className="w-16 h-16 rounded-lg border border-dashed border-gray-300 flex items-center justify-center bg-white text-gray-300 hover:border-blue-400 hover:text-blue-400 transition-all"
+                              >
+                                <FiPlus size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {formData.giftOptions?.occasions.length === 0 && (
+                        <div className="text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                          <FiGift className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                          <p className="text-gray-400 text-sm">No occasions added yet.</p>
+                          <button onClick={handleAddOccasion} className="mt-2 text-blue-600 font-bold text-sm hover:underline">Add Birthday, Anniversary, etc.</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
 
 
       default:
@@ -1540,6 +1739,12 @@ export const ProductsPage = () => {
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'configuration' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
                 >
                   <FiLayers className="w-4 h-4" /> Configuration
+                </button>
+                <button
+                  onClick={() => setActiveTab('gift')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'gift' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <FiGift className="w-4 h-4" /> Gift Options
                 </button>
               </div>
 

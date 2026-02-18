@@ -91,6 +91,15 @@ export interface Product {
         title?: string;
         data: any;
     }[];
+    giftOptions?: {
+        active: boolean;
+        price: number;
+        occasions: Array<{
+            id: string;
+            label: string;
+            designs: Array<{ id: string; image: string }>;
+        }>;
+    };
 }
 
 export interface ProductsResponse {

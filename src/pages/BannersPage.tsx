@@ -117,7 +117,7 @@ export const BannersPage = () => {
             setFormData({ title: '', image: '', link: '', isActive: true, order: 0, startDate: '', endDate: '' });
             setIsPanelOpen(true);
           }}
-          className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+          className="flex items-center gap-2 bg-accent text-primary-900 px-4 py-2 rounded-lg hover:bg-accent-hover transition-all shadow-md font-bold active:scale-95"
         >
           <FiPlus /> Add Banner
         </button>
@@ -162,7 +162,7 @@ export const BannersPage = () => {
                 <h3 className="font-bold text-gray-900 line-clamp-1" title={banner.title}>{banner.title}</h3>
                 <button
                   onClick={() => toggleStatus(banner.id, banner.isActive)}
-                  className={`text-2xl transition-colors ${banner.isActive ? 'text-green-500' : 'text-gray-300'}`}
+                  className={`text-2xl transition-colors ${banner.isActive ? 'text-accent' : 'text-gray-300'}`}
                   title={banner.isActive ? "Deactivate" : "Activate"}
                 >
                   {banner.isActive ? <FiToggleRight /> : <FiToggleLeft />}
@@ -255,11 +255,11 @@ export const BannersPage = () => {
                   <label className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                      className="w-4 h-4 text-accent rounded focus:ring-accent"
                       checked={formData.isActive}
                       onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
                     />
-                    <span className="text-sm font-medium text-gray-700">Active</span>
+                    <span className="text-sm font-medium text-gray-700">Active Status</span>
                   </label>
                 </div>
               </div>
@@ -289,7 +289,7 @@ export const BannersPage = () => {
               </div>
 
               <div className="pt-8">
-                <button type="submit" className="w-full btn-primary py-3 text-lg">
+                <button type="submit" className="w-full bg-accent text-primary-900 font-bold py-3 text-lg rounded-xl hover:bg-accent-hover transition-all shadow-lg active:scale-95">
                   {editingBanner ? 'Update Banner' : 'Create Banner'}
                 </button>
               </div>
@@ -300,8 +300,7 @@ export const BannersPage = () => {
 
       <style>{`
                 .label { @apply block text-sm font-medium text-gray-700 mb-1.5; }
-                .input { @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none; }
-                .btn-primary { @apply bg-black text-white rounded-lg font-bold hover:bg-gray-800 transition-all shadow-md active:scale-95; }
+                .input { @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all outline-none; }
             `}</style>
     </div>
   );

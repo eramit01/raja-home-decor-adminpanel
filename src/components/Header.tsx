@@ -12,12 +12,12 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-      <h2 className="text-xl font-semibold">Admin Dashboard</h2>
+    <header className="bg-white px-8 py-4 flex items-center justify-between border-b border-gray-100">
+      <h2 className="text-xl font-bold text-primary-900 tracking-tight">Dashboard Overview</h2>
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <FiUser />
-          <span className="text-sm">{user?.email}</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
+          <FiUser className="text-accent" />
+          <span className="text-sm font-semibold text-primary-900">{user?.email}</span>
         </div>
         <button
           onClick={handleLogout}

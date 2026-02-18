@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Royal Gold & Deep Obsidian Theme */
+  --primary-50: #f4f4f5;
+  --primary-100: #e4e4e7;
+  --primary-200: #d4d4d8;
+  --primary-300: #a1a1aa;
+  --primary-400: #71717a;
+  --primary-500: #52525b;
+  --primary-600: #3f3f46;
+  --primary-700: #27272a;
+  --primary-800: #18181b;
+  --primary-900: #1C1C1E;
+  /* Obsidian */
+
+  --accent: #D4AF37;
+  /* Royal Gold */
+  --accent-hover: #F2D06B;
+  /* Champagne Gold */
+  --accent-soft: rgba(212, 175, 55, 0.15);
+
+  --bg-premium: #FDFCF0;
+  /* Warm Ivory */
+  --text-main: #1A1A1A;
+  --text-gold: #88651E;
+}
+
 @layer components {
   .btn-primary {
     @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors;
