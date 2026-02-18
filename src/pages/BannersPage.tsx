@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FiPlus, FiTrash2, FiToggleLeft, FiToggleRight, FiX, FiEdit2 } from 'react-icons/fi';
 import { BannerService, Banner } from '../services/banner.service';
+import { categoryService, Category } from '../services/category.service';
 
 export const BannersPage = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
@@ -36,8 +38,22 @@ export const BannersPage = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const data = await categoryService.getCategories();
+      if (data && data.categories) {
+        setCategories(data.categories);
+      } else if (Array.isArray(data)) {
+        setCategories(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    }
+  };
+
   useEffect(() => {
     fetchBanners();
+    fetchCategories();
   }, []);
 
   const handleCreateOrUpdate = async (e: React.FormEvent) => {
@@ -230,14 +246,46 @@ export const BannersPage = () => {
               </div>
 
               <div>
-                <label className="label">Target Link (Optional)</label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="/category/summer"
-                  value={formData.link}
-                  onChange={e => setFormData({ ...formData, link: e.target.value })}
-                />
+                <label className="label font-bold text-accent uppercase tracking-wider text-xs">Link Options</label>
+                <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Link to Category</label>
+                    <select
+                      className="input !py-2 bg-white"
+                      value={formData.link?.startsWith('/category/') ? formData.link.split('/').pop() : ''}
+                      onChange={e => {
+                        const slug = e.target.value;
+                        if (slug) setFormData({ ...formData, link: `/category/${slug}` });
+                        else setFormData({ ...formData, link: '' });
+                      }}
+                    >
+                      <option value="">-- No Category Selection --</option>
+                      {categories.map(cat => (
+                        <option key={cat._id} value={cat.slug}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-gray-50 px-2 text-gray-400 font-bold">OR</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Custom Target Link</label>
+                    <input
+                      type="text"
+                      className="input !py-2 bg-white"
+                      placeholder="e.g. /shop or /products/ID"
+                      value={formData.link}
+                      onChange={e => setFormData({ ...formData, link: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
