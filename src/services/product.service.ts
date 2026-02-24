@@ -100,6 +100,8 @@ export interface Product {
             designs: Array<{ id: string; image: string }>;
         }>;
     };
+    sortOrder?: number;
+    pdpLayout?: string[];
 }
 
 export interface ProductsResponse {

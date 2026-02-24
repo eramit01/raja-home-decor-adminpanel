@@ -45,10 +45,10 @@ export const OrdersPage = () => {
       case 'Pending Payment': return 'bg-yellow-100 text-yellow-700';
       case 'Payment Success': return 'bg-purple-100 text-purple-700';
       case 'Pending Verification': return 'bg-orange-100 text-orange-700 border border-orange-200 animate-pulse';
-      case 'Confirmed': return 'bg-green-100 text-green-700';
+      case 'Confirmed': return 'bg-accent/10 text-accent border border-accent/20';
       case 'Processing': return 'bg-blue-100 text-blue-700';
       case 'Shipped': return 'bg-indigo-100 text-indigo-700';
-      case 'Delivered': return 'bg-green-100 text-green-700';
+      case 'Delivered': return 'bg-accent/10 text-accent border border-accent/20';
       case 'Cancelled': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -123,7 +123,7 @@ export const OrdersPage = () => {
                     <td className="px-6 py-4 text-sm text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{order.customer.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      <span className={`px-2 py-0.5 rounded text-xs ${order.paymentStatus === 'Paid' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs ${order.paymentStatus === 'Paid' ? 'bg-accent/10 text-accent' : 'bg-red-50 text-red-700'}`}>
                         {order.paymentMethod}
                       </span>
                     </td>

@@ -9,7 +9,7 @@ const DashboardCard = ({ title, value, trend, trendUp, icon: Icon, color }: any)
       <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">{title}</p>
       <h3 className="text-2xl font-bold text-gray-900 mb-2">{value}</h3>
       {trend && (
-        <div className={`flex items-center gap-1 text-xs font-medium ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
+        <div className={`flex items-center gap-1 text-xs font-semibold ${trendUp ? 'text-accent' : 'text-red-500'}`}>
           <span>{trend}</span>
           {trendUp ? <span>&#8679;</span> : <span>&#8681;</span>}
           <span className="text-gray-400 ml-1 font-normal">vs last week</span>

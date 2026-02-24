@@ -7,7 +7,7 @@ import { productService, Product } from '../services/product.service';
 import { categoryService, Category } from '../services/category.service';
 
 // --- Types ---
-type Tab = 'general' | 'pricing' | 'media' | 'specs' | 'seo' | 'linked' | 'faqs' | 'configuration' | 'gift';
+type Tab = 'general' | 'pricing' | 'media' | 'specs' | 'seo' | 'linked' | 'faqs' | 'configuration' | 'gift' | 'display';
 
 interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
   newImage?: string;
@@ -78,6 +78,11 @@ interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
       designs: Array<{ id: string; image: string }>;
     }>;
   };
+  material?: string;
+  weight?: number;
+  specifications?: Array<{ key: string; value: string }>;
+  sortOrder?: number;
+  pdpLayout?: string[];
 }
 
 // --- Product Hook ---
@@ -380,11 +385,28 @@ export const ProductsPage = () => {
 
   const handleRemoveDesign = (occIndex: number, designIndex: number) => {
     const newOccasions = [...(formData.giftOptions?.occasions || [])];
-    newOccasions[occIndex].designs.splice(designIndex, 1);
-    setFormData(prev => ({
-      ...prev,
-      giftOptions: { ...prev.giftOptions!, occasions: newOccasions }
-    }));
+    newOccasions[occIndex].designs = newOccasions[occIndex].designs.filter((_, i) => i !== designIndex);
+    setFormData({ ...formData, giftOptions: { ...formData.giftOptions!, occasions: newOccasions } });
+  };
+
+  // --- Custom Spec Helpers ---
+  const handleAddCustomSpec = () => {
+    const specs = formData.specifications || [];
+    setFormData({
+      ...formData,
+      specifications: [...specs, { key: "", value: "" }]
+    });
+  };
+
+  const handleUpdateCustomSpec = (index: number, field: 'key' | 'value', value: string) => {
+    const specs = [...(formData.specifications || [])];
+    specs[index] = { ...specs[index], [field]: value };
+    setFormData({ ...formData, specifications: specs });
+  };
+
+  const handleRemoveCustomSpec = (index: number) => {
+    const specs = (formData.specifications || []).filter((_, i) => i !== index);
+    setFormData({ ...formData, specifications: specs });
   };
 
   // --- Render Tabs ---
@@ -642,7 +664,7 @@ export const ProductsPage = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Material</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Material (Optional)</label>
                 <input
                   type="text"
                   value={formData.material || ''}
@@ -652,7 +674,7 @@ export const ProductsPage = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Finish / Color</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Finish / Color (Optional)</label>
                 <input
                   type="text"
                   value={formData.finish || ''}
@@ -664,7 +686,7 @@ export const ProductsPage = () => {
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="font-semibold text-gray-800 mb-3">Dimensions & Capacity</h3>
+              <h3 className="font-semibold text-gray-800 mb-3">Dimensions & Capacity (Optional)</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Height (in)</label>
@@ -697,11 +719,61 @@ export const ProductsPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
                   <input
                     type="number"
-                    value={formData.dimensions?.weight || ''}
-                    onChange={e => setFormData({ ...formData, dimensions: { ...formData.dimensions, weight: Number(e.target.value) } })}
+                    value={formData.weight || ''}
+                    onChange={e => setFormData({ ...formData, weight: Number(e.target.value) })}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-gray-800">Custom Specifications</h3>
+                <button
+                  onClick={handleAddCustomSpec}
+                  className="text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 font-medium flex items-center gap-1"
+                >
+                  <FiPlus className="w-4 h-4" /> Add Spec
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {formData.specifications?.map((spec, idx) => (
+                  <div key={idx} className="flex gap-3 items-start bg-gray-50 p-3 rounded-lg relative group">
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Label</label>
+                      <input
+                        type="text"
+                        value={spec.key}
+                        onChange={(e) => handleUpdateCustomSpec(idx, 'key', e.target.value)}
+                        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                        placeholder="e.g. RAM"
+                      />
+                    </div>
+                    <div className="flex-[2]">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Value</label>
+                      <input
+                        type="text"
+                        value={spec.value}
+                        onChange={(e) => handleUpdateCustomSpec(idx, 'value', e.target.value)}
+                        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                        placeholder="e.g. 8GB"
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleRemoveCustomSpec(idx)}
+                      className="mt-6 p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+                {(!formData.specifications || formData.specifications.length === 0) && (
+                  <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100 italic text-gray-400 text-sm">
+                    No custom specifications added. Click "Add Spec" to begin.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -945,7 +1017,7 @@ export const ProductsPage = () => {
                               className="flex-1 px-2 py-1 border border-gray-100 rounded text-xs outline-none focus:ring-1 focus:ring-blue-400"
                             />
                             <div className="relative w-24">
-                              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-[10px]">+₹</span>
+                              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-blue-600 font-bold text-[10px]">₹</span>
                               <input
                                 type="number"
                                 placeholder="Price"
@@ -1599,6 +1671,71 @@ export const ProductsPage = () => {
 
 
 
+      case 'display':
+        const defaultLayout = ['pricing', 'variants', 'attributes', 'addons', 'gift', 'description', 'specs'];
+        const currentLayout = formData.pdpLayout && formData.pdpLayout.length > 0 ? formData.pdpLayout : defaultLayout;
+
+        const moveSection = (index: number, direction: 'up' | 'down') => {
+          const newLayout = [...currentLayout];
+          const targetIndex = direction === 'up' ? index - 1 : index + 1;
+          if (targetIndex >= 0 && targetIndex < newLayout.length) {
+            [newLayout[index], newLayout[targetIndex]] = [newLayout[targetIndex], newLayout[index]];
+            setFormData({ ...formData, pdpLayout: newLayout });
+          }
+        };
+
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Global Sort Priority</h3>
+              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div className="flex-1">
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Sort Order Number</label>
+                  <p className="text-xs text-gray-500">Lower numbers (1, 2, 3...) appear first on the home and category pages.</p>
+                </div>
+                <input
+                  type="number"
+                  value={formData.sortOrder || 0}
+                  onChange={e => setFormData({ ...formData, sortOrder: Number(e.target.value) })}
+                  className="w-24 px-4 py-2 border border-gray-200 rounded-lg text-lg font-bold text-center outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Product Detail Page Layout</h3>
+              <p className="text-sm text-gray-500 mb-6">Use arrows to reorder how sections appear on the product page.</p>
+
+              <div className="space-y-2">
+                {currentLayout.map((section, idx) => (
+                  <div key={section} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-xl group hover:border-blue-200 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">{idx + 1}</span>
+                      <span className="font-bold text-gray-700 capitalize">{section}</span>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => moveSection(idx, 'up')}
+                        disabled={idx === 0}
+                        className="p-2 hover:bg-white rounded-lg text-gray-500 disabled:opacity-30 transition-all hover:text-blue-600"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" /></svg>
+                      </button>
+                      <button
+                        onClick={() => moveSection(idx, 'down')}
+                        disabled={idx === currentLayout.length - 1}
+                        className="p-2 hover:bg-white rounded-lg text-gray-500 disabled:opacity-30 transition-all hover:text-blue-600"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return <div>Select a tab</div>;
     }
@@ -1639,6 +1776,7 @@ export const ProductsPage = () => {
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Product</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Category</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Price</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Sort</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Stock</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
               </tr>
@@ -1659,6 +1797,7 @@ export const ProductsPage = () => {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 capitalize">{product.category}</td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">₹{product.price}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-blue-600">#{product.sortOrder || 0}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${product.stock > 10 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {product.stock} in stock
@@ -1745,6 +1884,12 @@ export const ProductsPage = () => {
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'gift' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
                 >
                   <FiGift className="w-4 h-4" /> Gift Options
+                </button>
+                <button
+                  onClick={() => setActiveTab('display')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'display' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <FiLayers className="w-4 h-4" /> Display Settings
                 </button>
               </div>
 
