@@ -242,7 +242,7 @@ export const BannersPage = () => {
                   value={formData.image}
                   onChange={e => setFormData({ ...formData, image: e.target.value })}
                 />
-                <p className="text-xs text-gray-500 mt-1">Recommended size: 1920x600px</p>
+                <p className="text-xs text-gray-500 mt-1">Recommended size: 1900x650px</p>
               </div>
 
               <div>

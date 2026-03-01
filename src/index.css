@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 :root {
-  /* Royal Gold & Deep Obsidian Theme */
-  --primary-50: #f4f4f5;
-  --primary-100: #e4e4e7;
-  --primary-200: #d4d4d8;
-  --primary-300: #a1a1aa;
-  --primary-400: #71717a;
-  --primary-500: #52525b;
-  --primary-600: #3f3f46;
-  --primary-700: #27272a;
-  --primary-800: #18181b;
-  --primary-900: #1C1C1E;
+  /* Requested Primary Color: #ffd6d6 */
+  --primary-50: #fffcfc;
+  --primary-100: #fff5f5;
+  --primary-200: #ffebeb;
+  --primary-300: #ffe0e0;
+  --primary-400: #ffdbdb;
+  --primary-500: #ffd6d6;
+  --primary-600: #e6c1c1;
+  --primary-700: #ccabab;
+  --primary-800: #b39696;
+  --primary-900: #998080;
   /* Obsidian */
 
-  --accent: #D4AF37;
-  /* Royal Gold */
-  --accent-hover: #F2D06B;
-  /* Champagne Gold */
-  --accent-soft: rgba(212, 175, 55, 0.15);
+  --accent: #ffd6d6;
+  /* Requested Color */
+  --accent-hover: #ffc2c2;
+  /* Slightly darker for hover */
+  --accent-soft: rgba(255, 214, 214, 0.15);
 
   --bg-premium: #FDFCF0;
   /* Warm Ivory */
