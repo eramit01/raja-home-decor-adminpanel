@@ -3,29 +3,25 @@
 @tailwind utilities;
 
 :root {
-  /* Requested Primary Color: #ffd6d6 */
-  --primary-50: #fffcfc;
-  --primary-100: #fff5f5;
-  --primary-200: #ffebeb;
-  --primary-300: #ffe0e0;
-  --primary-400: #ffdbdb;
-  --primary-500: #ffd6d6;
-  --primary-600: #e6c1c1;
-  --primary-700: #ccabab;
-  --primary-800: #b39696;
-  --primary-900: #998080;
-  /* Obsidian */
+  /* Premium Black & White Theme */
+  --primary-50: #ffffff;
+  --primary-100: #f5f5f5;
+  --primary-200: #e5e5e5;
+  --primary-300: #d4d4d4;
+  --primary-400: #a3a3a3;
+  --primary-500: #737373;
+  --primary-600: #171717;
+  --primary-700: #000000;
+  --primary-800: #000000;
+  --primary-900: #000000;
 
-  --accent: #ffd6d6;
-  /* Requested Color */
-  --accent-hover: #ffc2c2;
-  /* Slightly darker for hover */
-  --accent-soft: rgba(255, 214, 214, 0.15);
+  --accent: #000000;
+  --accent-hover: #262626;
+  --accent-soft: rgba(0, 0, 0, 0.05);
 
-  --bg-premium: #FDFCF0;
-  /* Warm Ivory */
-  --text-main: #1A1A1A;
-  --text-gold: #88651E;
+  --bg-premium: #ffffff;
+  --text-main: #000000;
+  --text-gold: #525252;
 }
 
 @layer components {

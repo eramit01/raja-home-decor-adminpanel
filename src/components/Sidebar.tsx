@@ -43,12 +43,12 @@ export const Sidebar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center px-6 py-3.5 ${isActive
-                ? 'bg-accent text-primary-900 font-extrabold shadow-lg shadow-accent/20 mx-3 rounded-xl'
-                : 'text-primary-300'
+              className={`group flex items-center px-6 py-3.5 mx-3 mt-1 rounded-xl transition-all duration-200 ${isActive
+                ? 'bg-white text-black font-extrabold shadow-lg shadow-white/10'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
             >
-              <Icon className={`mr-3 text-lg ${isActive ? 'text-primary-900' : 'text-primary-400'}`} />
+              <Icon className={`mr-3 text-lg ${isActive ? 'text-black' : 'text-gray-400 group-hover:text-white'}`} />
               <span className="tracking-wide">{item.label}</span>
             </Link>
           );
