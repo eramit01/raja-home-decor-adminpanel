@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiEye, FiDownload } from 'react-icons/fi';
+import { FiSearch, FiDownload, FiTruck, FiBox } from 'react-icons/fi';
 import { orderService, Order } from '../services/order.service';
 import { OrderDetailsModal } from '../components/OrderDetailsModal';
 
@@ -103,7 +103,9 @@ export const OrdersPage = () => {
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Customer</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Payment</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Total</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Order Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Shipment Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Courier Info</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
               </tr>
             </thead>
@@ -133,13 +135,34 @@ export const OrdersPage = () => {
                         {order.status}
                       </span>
                     </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <FiBox className="text-gray-400" />
+                        <span className={`font-medium ${order.shipmentStatus === 'Unshipped' ? 'text-gray-500' : 'text-primary-600'}`}>
+                          {order.shipmentStatus || 'Unshipped'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm">
+                        <div className="flex items-center gap-1.5 font-medium text-gray-900">
+                          <FiTruck className="text-gray-400" />
+                          {order.courier || '-'}
+                        </div>
+                        <div className="text-gray-500 text-xs mt-0.5 ml-5">
+                          {order.awbNumber ? `AWB: ${order.awbNumber}` : '-'}
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
-                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                      >
-                        <FiEye />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
+                          className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                          View Details
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

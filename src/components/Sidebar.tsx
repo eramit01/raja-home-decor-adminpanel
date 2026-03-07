@@ -3,6 +3,7 @@ import {
   FiHome,
   FiPackage,
   FiShoppingBag,
+  FiTruck,
   FiMessageSquare,
   FiStar,
   FiImage,
@@ -15,6 +16,7 @@ const menuItems = [
   { path: '/dashboard', icon: FiHome, label: 'Dashboard' },
   { path: '/products', icon: FiPackage, label: 'Products' },
   { path: '/orders', icon: FiShoppingBag, label: 'Orders' },
+  { path: '/bulk-shipping', icon: FiTruck, label: 'Bulk Shipping' },
   { path: '/bulk-enquiries', icon: FiMessageSquare, label: 'Bulk Enquiries' },
   { path: '/reviews', icon: FiStar, label: 'Reviews' },
   { path: '/banners', icon: FiImage, label: 'Banners' },
@@ -29,8 +31,12 @@ export const Sidebar = () => {
   return (
     <aside className="w-64 bg-[#141415] text-white shadow-2xl flex flex-col border-r border-accent/5">
       <div className="p-6 border-b border-primary-800/30">
-        <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-primary-900">A</div>
+        <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-3">
+          <img
+            src="/Logo/favbar.png"
+            alt="Admin Logo"
+            className="w-12 h-12 object-contain rounded-lg bg-white p-1.5 border border-white/20 shadow-lg"
+          />
           Admin Panel
         </h1>
       </div>

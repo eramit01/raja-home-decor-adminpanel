@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { setCredentials } from '../store/slices/authSlice';
-import { FiMail, FiLock, FiShield, FiArrowRight } from 'react-icons/fi';
+import { FiMail, FiLock, FiArrowRight } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 
 const loginSchema = z.object({
@@ -62,9 +62,11 @@ export const LoginPage = () => {
       <div className="w-full max-w-[420px] animate-fade-in">
         {/* Logo/Icon Area */}
         <div className="flex flex-col items-center mb-10 text-center">
-          <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 shadow-2xl mb-6 group hover:border-white/20 transition-colors duration-500">
-            <FiShield className="text-white text-4xl group-hover:scale-110 transition-transform duration-500" />
-          </div>
+          <img
+            src="/Logo/favbar.png"
+            alt="Admin Login"
+            className="h-20 w-auto object-contain mb-6 hover:scale-105 transition-transform duration-500"
+          />
           <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Central Control</h1>
           <p className="text-gray-500 text-sm font-medium">Secure Admin Authentication Gateway</p>
         </div>

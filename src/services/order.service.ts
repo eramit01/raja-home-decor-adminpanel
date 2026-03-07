@@ -41,6 +41,16 @@ export interface Order {
     isVerified: boolean;
     ipAddress?: string;
     createdAt: string;
+    // Shipping additions
+    shipmentStatus?: 'Unshipped' | 'Label Generated' | 'Pickup Scheduled' | 'Shipped' | 'Out for Delivery' | 'Delivered' | 'Returned';
+    courier?: string;
+    awbNumber?: string;
+    packageWeight?: number;
+    dimensions?: {
+        length: number;
+        width: number;
+        height: number;
+    };
 }
 
 // Mock Data
@@ -84,7 +94,12 @@ const mapOrder = (o: any): Order => ({
     paymentMethod: o.paymentMethod === 'cod' ? 'COD' : 'Online',
     isVerified: o.isVerified || false,
     ipAddress: o.ipAddress,
-    createdAt: o.createdAt
+    createdAt: o.createdAt,
+    shipmentStatus: o.shipmentStatus || 'Unshipped',
+    courier: o.courier,
+    awbNumber: o.awbNumber,
+    packageWeight: o.packageWeight,
+    dimensions: o.dimensions
 });
 
 export const orderService = {

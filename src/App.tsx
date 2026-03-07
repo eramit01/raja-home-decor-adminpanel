@@ -5,6 +5,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailsPage } from './pages/OrderDetailsPage';
+import { BulkShippingPage } from './pages/BulkShippingPage';
 import { BulkEnquiriesPage } from './pages/BulkEnquiriesPage';
 import { ReviewsPage } from './pages/ReviewsPage';
 import { BannersPage } from './pages/BannersPage';
@@ -30,6 +31,7 @@ function App() {
         <Route path="products" element={<ProductsPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="orders/:id" element={<OrderDetailsPage />} />
+        <Route path="bulk-shipping" element={<BulkShippingPage />} />
         <Route path="bulk-enquiries" element={<BulkEnquiriesPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="banners" element={<BannersPage />} />

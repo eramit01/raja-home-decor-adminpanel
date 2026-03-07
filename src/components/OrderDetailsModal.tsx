@@ -1,5 +1,7 @@
-import { FiX, FiMapPin, FiPackage, FiPhone, FiMail } from 'react-icons/fi';
+import { FiX, FiMapPin, FiPackage, FiPhone, FiMail, FiTruck, FiDownload } from 'react-icons/fi';
+import { useState } from 'react';
 import { Order } from '../services/order.service';
+import { ShippingCreationModal } from './ShippingCreationModal';
 
 interface OrderDetailsModalProps {
     order: Order | null;
@@ -8,7 +10,21 @@ interface OrderDetailsModalProps {
 }
 
 export const OrderDetailsModal = ({ order, onClose, onUpdateStatus }: OrderDetailsModalProps) => {
+    const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
+
     if (!order) return null;
+
+    const handleCreateShipment = async (shipmentData: any) => {
+        // TODO: Replace with real API call to Shiprocket Service later
+        console.log("Creating Shipment via API", shipmentData);
+        alert(`Shipment Created successfully via ${shipmentData.courier}! AWB assigned.`);
+
+        // Mocking an immediate local update to simulate API response
+        order.shipmentStatus = 'Label Generated';
+        order.awbNumber = `1Z${Math.floor(Math.random() * 90000000000) + 10000000000}`;
+        order.courier = shipmentData.courier;
+        onUpdateStatus(order.id, 'Shipped');
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
@@ -143,9 +159,66 @@ export const OrderDetailsModal = ({ order, onClose, onUpdateStatus }: OrderDetai
                             </div>
                         </div>
 
+                        {/* Shipment Management Section */}
+                        <div className="p-5 border rounded-xl bg-white shadow-sm border-primary-100">
+                            <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-primary-900">
+                                <FiTruck className="text-primary-600" /> Logistics & Shipping
+                            </h3>
+
+                            <div className="mt-4 space-y-3">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">Shipping Status</span>
+                                    <span className="font-bold text-gray-900">{order.shipmentStatus || 'Unshipped'}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">Courier Partner</span>
+                                    <span className="font-medium">{order.courier || 'Pending Assigned'}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">AWB Tracking Number</span>
+                                    <span className="font-mono bg-gray-50 px-2 py-1 rounded border">{order.awbNumber || 'Not Generated'}</span>
+                                </div>
+                            </div>
+
+                            {/* Shipment Action Buttons */}
+                            <div className="mt-5 space-y-2 border-t pt-4">
+                                {(!order.awbNumber || order.shipmentStatus === 'Unshipped') ? (
+                                    <button
+                                        onClick={() => setIsShippingModalOpen(true)}
+                                        className="w-full bg-primary-600 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-primary-700 transition"
+                                    >
+                                        <FiPackage /> Create Shipment
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button className="w-full bg-blue-50 text-blue-700 border border-blue-200 font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-100 transition">
+                                            <FiDownload /> Download Shipping Label
+                                        </button>
+                                        <div className="flex gap-2">
+                                            <button className="w-1/2 bg-gray-50 text-gray-700 border font-medium py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition">
+                                                <FiTruck /> Schedule Pickup
+                                            </button>
+                                            <button className="w-1/2 bg-gray-800 text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-black transition">
+                                                Track Order
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
+
+            {/* Sub-Modal: Shipping Creation */}
+            {isShippingModalOpen && (
+                <ShippingCreationModal
+                    order={order}
+                    onClose={() => setIsShippingModalOpen(false)}
+                    onCreateShipment={handleCreateShipment}
+                />
+            )}
         </div>
     );
 };
