@@ -143,5 +143,10 @@ export const orderService = {
     manualVerifyOrder: async (id: string, isVerified: boolean) => {
         const response = await api.post(`/orders/${id}/verify`, { isVerified });
         return response.data;
+    },
+
+    deleteOrder: async (id: string) => {
+        const response = await api.delete(`/orders/${id}`);
+        return response.data;
     }
 };

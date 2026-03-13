@@ -86,18 +86,21 @@ interface ProductFormData extends Omit<Partial<Product>, 'addOns'> {
 }
 
 // --- Product Hook ---
-const useAdminProducts = () => {
+const useAdminProducts = (categoryId?: string) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [categoryId]);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const response = await productService.getProducts({ limit: 100 });
+      const response = await productService.getProducts({
+        limit: 100,
+        category: categoryId || undefined
+      });
       setProducts(response.data.products);
     } catch (error) {
       console.error("Failed to load products", error);
@@ -109,8 +112,34 @@ const useAdminProducts = () => {
   return { products, loading, refetch: loadProducts };
 };
 
+// --- Skeleton Component ---
+const ProductSkeletonRow = () => (
+  <tr className="animate-pulse">
+    <td className="px-6 py-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-gray-200" />
+        <div className="space-y-2">
+          <div className="h-4 w-32 bg-gray-200 rounded" />
+          <div className="h-3 w-16 bg-gray-100 rounded" />
+        </div>
+      </div>
+    </td>
+    <td className="px-6 py-4"><div className="h-4 w-20 bg-gray-100 rounded" /></td>
+    <td className="px-6 py-4"><div className="h-4 w-16 bg-gray-200 rounded" /></td>
+    <td className="px-6 py-4"><div className="h-4 w-8 bg-gray-100 rounded" /></td>
+    <td className="px-6 py-4"><div className="h-4 w-12 bg-gray-200 rounded" /></td>
+    <td className="px-6 py-4 text-right">
+      <div className="flex justify-end gap-2 text-transparent">
+        <div className="w-8 h-8 rounded-lg bg-gray-100" />
+        <div className="w-8 h-8 rounded-lg bg-gray-100" />
+      </div>
+    </td>
+  </tr>
+);
+
 export const ProductsPage = () => {
-  const { products, refetch: loadProducts } = useAdminProducts();
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const { products, refetch: loadProducts, loading } = useAdminProducts(selectedCategoryId);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('general');
@@ -1765,6 +1794,18 @@ export const ProductsPage = () => {
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        <div className="w-full sm:w-64">
+          <select
+            value={selectedCategoryId}
+            onChange={(e) => setSelectedCategoryId(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Table */}
@@ -1782,33 +1823,46 @@ export const ProductsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden">
-                        <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{product.title}</div>
-                        <div className="text-xs text-gray-500 uppercase">{product.status}</div>
-                      </div>
+              {loading ? (
+                Array(5).fill(0).map((_, i) => <ProductSkeletonRow key={i} />)
+              ) : filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <FiPackage className="w-12 h-12 text-gray-300" />
+                      <p className="text-lg font-medium text-gray-400">No products found</p>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600 capitalize">{product.category}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">₹{product.price}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-blue-600">#{product.sortOrder || 0}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${product.stock > 10 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {product.stock} in stock
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button onClick={() => handleEdit(product)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><FiEdit2 /></button>
-                    <button onClick={() => handleDelete(product.id || product._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 /></button>
-                  </td>
                 </tr>
-              ))}
+              ) : (
+                filteredProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden">
+                          <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{product.title}</div>
+                          <div className="text-xs text-gray-500 uppercase">{product.status}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 capitalize">{product.category}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">₹{product.price}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-blue-600">#{product.sortOrder || 0}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${product.stock > 10 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {product.stock} in stock
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => handleEdit(product)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg mr-2"><FiEdit2 /></button>
+                      <button onClick={() => handleDelete(product.id || product._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 /></button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

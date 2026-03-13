@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiSearch, FiDownload, FiTruck, FiBox } from 'react-icons/fi';
+import { FiSearch, FiDownload, FiTruck, FiBox, FiTrash2 } from 'react-icons/fi';
 import { orderService, Order } from '../services/order.service';
 import { OrderDetailsModal } from '../components/OrderDetailsModal';
 
@@ -37,6 +37,19 @@ export const OrdersPage = () => {
     } catch (error) {
       console.error("Failed to update status", error);
       alert("Failed to update order status");
+    }
+  };
+
+  const handleDelete = async (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this order? This action cannot be undone.")) {
+      try {
+        await orderService.deleteOrder(orderId);
+        loadOrders();
+      } catch (error) {
+        console.error("Failed to delete order", error);
+        alert("Failed to delete order");
+      }
     }
   };
 
@@ -156,6 +169,13 @@ export const OrdersPage = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={(e) => handleDelete(order.id, e)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Order"
+                        >
+                          <FiTrash2 size={16} />
+                        </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
                           className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
