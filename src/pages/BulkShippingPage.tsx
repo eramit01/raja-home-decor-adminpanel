@@ -17,7 +17,7 @@ export const BulkShippingPage = () => {
             setLoading(true);
             const response = await orderService.getOrders();
             // In a real scenario, filter on backend. Here we filter locally for UI demo:
-            const list = response.data.orders.filter(o => o.status === 'Processing' && o.shipmentStatus === 'Unshipped');
+            const list = response.data.orders.filter((o: any) => o.status === 'Packed' && o.shipmentStatus === 'Unshipped');
             setOrders(list);
             setSelectedOrderIds([]);
         } catch (error) {

@@ -233,7 +233,7 @@ export const OrderDetailsPage: React.FC = () => {
                                             order.status === 'Delivered' ? '100%' : '0%'
                         }}></div>
 
-                        {['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered'].map((step, idx) => {
+                        {['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered'].map((step) => {
                             const statuses = ['Pending Verification', 'Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered'];
                             const currentIdx = statuses.indexOf(order.status === 'Pending Verification' ? 'Pending' : order.status);
                             const stepIdx = ['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered'].indexOf(step);
