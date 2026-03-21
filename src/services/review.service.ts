@@ -41,6 +41,11 @@ export const ReviewService = {
         return response.data.data.review;
     },
 
+    updateReview: async (id: string, reviewData: any) => {
+        const response = await api.put(`/reviews/admin/${id}`, reviewData);
+        return response.data.data.review;
+    },
+
     deleteReview: async (id: string) => {
         const response = await api.delete(`/reviews/admin/${id}`);
         return response.data;

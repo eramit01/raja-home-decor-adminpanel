@@ -1,23 +1,27 @@
 import { useState, useEffect } from 'react';
-import { FiShoppingBag, FiDollarSign, FiClock, FiTrendingUp } from 'react-icons/fi';
+import { FiShoppingBag, FiDollarSign, FiClock, FiTrendingUp, FiCalendar } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { adminService } from '../services/admin.service';
 
-const DashboardCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) => (
-  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-start justify-between hover:shadow-md hover:border-accent/10 transition-all duration-300 group cursor-pointer">
-    <div>
-      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">{title}</p>
-      <h3 className="text-2xl font-bold text-gray-900 mb-2">{value}</h3>
-      {trend && (
-        <div className={`flex items-center gap-1 text-xs font-semibold ${trendUp ? 'text-accent' : 'text-red-500'}`}>
-          <span>{trend}</span>
-          {trendUp ? <span>&#8679;</span> : <span>&#8681;</span>}
-          <span className="text-gray-400 ml-1 font-normal">vs last week</span>
+const DashboardCard = ({ title, value, meta, icon: Icon, iconClassName }: any) => (
+  <div className="bg-white rounded-2xl border border-gray-200/60 p-5 flex items-start justify-between transition-shadow hover:shadow-sm">
+    <div className="min-w-0">
+      <p className="text-sm font-semibold text-gray-600">{title}</p>
+      <h3 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900">{value}</h3>
+      {meta && (
+        <div className="mt-3 inline-flex items-center gap-2">
+          {meta.badge && (
+            <span className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold ${meta.badge.className}`}>
+              {meta.badge.dotClassName && <span className={`h-1.5 w-1.5 rounded-full ${meta.badge.dotClassName}`} />}
+              <span>{meta.badge.text}</span>
+            </span>
+          )}
+          {meta.helper && <span className="text-xs text-gray-500">{meta.helper}</span>}
         </div>
       )}
     </div>
-    <div className={`p-3 rounded-lg ${color}`}>
-      <Icon size={24} />
+    <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${iconClassName}`}>
+      <Icon size={18} />
     </div>
   </div>
 );
@@ -26,10 +30,41 @@ export const DashboardPage = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const [dateRange, setDateRange] = useState('all');
+  const [customDates, setCustomDates] = useState({ start: '', end: '' });
+
   useEffect(() => {
     const fetchStats = async () => {
+      setLoading(true);
       try {
-        const data = await adminService.getDashboardStats();
+        let params: any = {};
+
+        const now = new Date();
+        if (dateRange === 'today') {
+          const start = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+          const end = new Date(now.setHours(23, 59, 59, 999)).toISOString();
+          params = { startDate: start, endDate: end };
+        } else if (dateRange === '7days') {
+          const start = new Date();
+          start.setDate(start.getDate() - 7);
+          params = { startDate: start.toISOString(), endDate: new Date().toISOString() };
+        } else if (dateRange === '30days') {
+          const start = new Date();
+          start.setDate(start.getDate() - 30);
+          params = { startDate: start.toISOString(), endDate: new Date().toISOString() };
+        } else if (dateRange === 'custom') {
+          if (!customDates.start || !customDates.end) {
+            setLoading(false);
+            return;
+          }
+          const start = new Date(customDates.start);
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(customDates.end);
+          end.setHours(23, 59, 59, 999);
+          params = { startDate: start.toISOString(), endDate: end.toISOString() };
+        }
+
+        const data = await adminService.getDashboardStats(params);
         setStats(data.data);
       } catch (error) {
         console.error("Failed to load dashboard stats", error);
@@ -38,17 +73,53 @@ export const DashboardPage = () => {
       }
     };
     fetchStats();
-  }, []);
+  }, [dateRange, customDates.start, customDates.end]);
 
-  if (loading) return <div className="p-8">Loading dashboard...</div>;
-  if (!stats) return <div className="p-8">Failed to load dashboard.</div>;
+  if (loading && !stats) return <div className="p-8">Loading dashboard...</div>;
+  if (!stats && !loading) return <div className="p-8">Failed to load dashboard.</div>;
 
   return (
     <div className="p-6 space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">Overview of your store's performance today.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-500">Overview of your store's performance.</p>
+        </div>
+
+        {/* Date Filter */}
+        <div className="flex flex-wrap items-center gap-3 bg-white px-3 py-2 rounded-xl border border-gray-200/60 shadow-sm">
+          <FiCalendar className="text-gray-400" />
+          <select
+            className="bg-transparent border-none text-sm font-semibold text-gray-700 outline-none cursor-pointer pr-4"
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+          >
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="7days">Last 7 Days</option>
+            <option value="30days">Last 30 Days</option>
+            <option value="custom">Custom Range</option>
+          </select>
+
+          {dateRange === 'custom' && (
+            <div className="flex items-center gap-2 text-sm border-l pl-3 border-gray-200">
+              <input
+                type="date"
+                className="bg-gray-50 border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-accent text-gray-600"
+                value={customDates.start}
+                onChange={(e) => setCustomDates(prev => ({ ...prev, start: e.target.value }))}
+              />
+              <span className="text-gray-400">to</span>
+              <input
+                type="date"
+                className="bg-gray-50 border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-accent text-gray-600"
+                value={customDates.end}
+                onChange={(e) => setCustomDates(prev => ({ ...prev, end: e.target.value }))}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -56,34 +127,69 @@ export const DashboardPage = () => {
         <DashboardCard
           title="Total Revenue"
           value={`₹${stats.totalRevenue?.toLocaleString() || 0}`}
-          trend="Live"
-          trendUp={true}
           icon={FiDollarSign}
-          color="bg-accent/10 text-accent"
+          iconClassName="bg-accent/10 text-accent"
+          meta={{
+            badge: {
+              text: 'Live',
+              className: 'bg-emerald-50 text-emerald-700',
+              dotClassName: 'bg-emerald-500'
+            },
+            helper: 'vs selected range'
+          }}
         />
         <DashboardCard
           title="Total Orders"
           value={stats.totalOrders}
-          trend={stats.pendingOrders > 0 ? `${stats.pendingOrders} Pending` : "All Processed"}
-          trendUp={true}
           icon={FiShoppingBag}
-          color="bg-accent/10 text-accent"
+          iconClassName="bg-accent/10 text-accent"
+          meta={{
+            badge: stats.pendingOrders > 0
+              ? {
+                text: `${stats.pendingOrders} Pending`,
+                className: 'bg-amber-50 text-amber-700',
+                dotClassName: 'bg-amber-500'
+              }
+              : {
+                text: 'All processed',
+                className: 'bg-emerald-50 text-emerald-700',
+                dotClassName: 'bg-emerald-500'
+              },
+            helper: 'vs selected range'
+          }}
         />
         <DashboardCard
           title="Total Products"
           value={stats.totalProducts}
-          trend="active"
-          trendUp={true}
           icon={FiShoppingBag}
-          color="bg-accent/10 text-accent"
+          iconClassName="bg-accent/10 text-accent"
+          meta={{
+            badge: {
+              text: 'Active',
+              className: 'bg-slate-100 text-slate-700'
+            },
+            helper: 'vs selected range'
+          }}
         />
         <DashboardCard
           title="Enquiries"
           value={stats.pendingEnquiries}
-          trend="Pending"
-          trendUp={stats.pendingEnquiries === 0}
           icon={FiClock}
-          color="bg-accent/10 text-accent"
+          iconClassName="bg-accent/10 text-accent"
+          meta={{
+            badge: stats.pendingEnquiries > 0
+              ? {
+                text: `${stats.pendingEnquiries} Pending`,
+                className: 'bg-rose-50 text-rose-700',
+                dotClassName: 'bg-rose-500'
+              }
+              : {
+                text: 'None pending',
+                className: 'bg-emerald-50 text-emerald-700',
+                dotClassName: 'bg-emerald-500'
+              },
+            helper: 'vs selected range'
+          }}
         />
       </div>
 

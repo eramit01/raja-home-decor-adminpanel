@@ -1698,8 +1698,6 @@ export const ProductsPage = () => {
           </div>
         );
 
-
-
       case 'display':
         const defaultLayout = ['pricing', 'variants', 'attributes', 'addons', 'gift', 'description', 'specs'];
         const currentLayout = formData.pdpLayout && formData.pdpLayout.length > 0 ? formData.pdpLayout : defaultLayout;

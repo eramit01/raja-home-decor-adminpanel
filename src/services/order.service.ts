@@ -6,11 +6,23 @@ export interface OrderItem {
     name: string;
     image: string;
     price: number;
+    originalPrice?: number;
     quantity: number;
     variant?: { label: string; price: number; sku?: string };
     pack?: { label: string; price: number };
     style?: { label: string; priceAdjustment: number };
     addOns?: { label: string; price: number }[];
+    fragrance?: string;
+    fragrances?: string[];
+    size?: string;
+    selectedAttributes?: { [key: string]: string };
+    giftCustomization?: {
+        occasion: string;
+        designId: string;
+        message: string;
+        price: number;
+        active: boolean;
+    };
 }
 
 export interface Order {
@@ -35,7 +47,7 @@ export interface Order {
     subtotal: number;
     shippingCharges: number;
     total: number;
-    status: 'Pending' | 'Payment Success' | 'Pending Verification' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+    status: 'Pending' | 'Payment Success' | 'Pending Verification' | 'Confirmed' | 'Packed' | 'Shipped' | 'Delivered' | 'Cancelled';
     paymentStatus: 'Paid' | 'Pending' | 'Failed';
     paymentMethod: 'COD' | 'Online';
     isVerified: boolean;
@@ -43,9 +55,12 @@ export interface Order {
     createdAt: string;
     // Shipping additions
     shipmentStatus?: 'Unshipped' | 'Label Generated' | 'Pickup Scheduled' | 'Shipped' | 'Out for Delivery' | 'Delivered' | 'Returned';
-    courier?: string;
+    courierName?: string;
+    courier?: string; // Legacy
     awbNumber?: string;
+    trackingUrl?: string;
     packageWeight?: number;
+    discount: number;
     dimensions?: {
         length: number;
         width: number;
@@ -73,11 +88,17 @@ const mapOrder = (o: any): Order => ({
         name: i.name || i.product?.name,
         image: i.image || i.product?.image,
         price: i.price,
+        originalPrice: i.originalPrice,
         quantity: i.quantity,
         variant: i.variant,
         pack: i.pack,
         style: i.style,
-        addOns: i.addOns
+        addOns: i.addOns,
+        fragrance: i.fragrance,
+        fragrances: i.fragrances,
+        giftCustomization: i.giftCustomization,
+        size: i.size,
+        selectedAttributes: i.selectedAttributes
     })),
     subtotal: o.subtotal || 0,
     shippingCharges: o.shippingCharges || 0,
@@ -85,10 +106,11 @@ const mapOrder = (o: any): Order => ({
     status: o.status === 'pending_payment' ? 'Pending' :
         o.status === 'payment_success' ? 'Payment Success' :
             o.status === 'pending_verification' ? 'Pending Verification' :
-                o.status === 'confirmed' ? 'Processing' :
-                    o.status === 'shipped' ? 'Shipped' :
-                        o.status === 'delivered' ? 'Delivered' :
-                            o.status === 'cancelled' ? 'Cancelled' : o.status,
+                o.status === 'confirmed' ? 'Confirmed' :
+                    o.status === 'packed' ? 'Packed' :
+                        o.status === 'shipped' ? 'Shipped' :
+                            o.status === 'delivered' ? 'Delivered' :
+                                o.status === 'cancelled' ? 'Cancelled' : o.status,
     paymentStatus: o.paymentStatus === 'verified' ? 'Paid' :
         o.paymentStatus === 'failed' ? 'Failed' : 'Pending',
     paymentMethod: o.paymentMethod === 'cod' ? 'COD' : 'Online',
@@ -96,9 +118,12 @@ const mapOrder = (o: any): Order => ({
     ipAddress: o.ipAddress,
     createdAt: o.createdAt,
     shipmentStatus: o.shipmentStatus || 'Unshipped',
+    courierName: o.courierName || o.courier,
     courier: o.courier,
     awbNumber: o.awbNumber,
+    trackingUrl: o.trackingUrl,
     packageWeight: o.packageWeight,
+    discount: o.discount || 0,
     dimensions: o.dimensions
 });
 
@@ -119,7 +144,7 @@ export const orderService = {
             const response = await api.get(`/orders/${id}`);
             // Assuming the API returns the order object in response.data.data
             // If the structure is different, this needs adjustment.
-            const orderData = response.data.data;
+            const orderData = response.data.data?.order || response.data.data;
             const mappedOrder = mapOrder(orderData);
             return { data: { order: mappedOrder } };
         } catch (error) {
@@ -131,12 +156,18 @@ export const orderService = {
     updateOrderStatus: async (id: string, status: string) => {
         const backendStatus =
             status === 'Pending' ? 'pending_payment' :
-                status === 'Processing' ? 'confirmed' :
-                    status === 'Shipped' ? 'shipped' :
-                        status === 'Delivered' ? 'delivered' :
-                            status === 'Cancelled' ? 'cancelled' : status;
+                status === 'Confirmed' ? 'confirmed' :
+                    status === 'Packed' ? 'packed' :
+                        status === 'Shipped' ? 'shipped' :
+                            status === 'Delivered' ? 'delivered' :
+                                status === 'Cancelled' ? 'cancelled' : status;
 
         const response = await api.patch(`/orders/${id}/status`, { status: backendStatus });
+        return response;
+    },
+
+    updateShippingDetails: async (id: string, shippingData: { courierName?: string; awbNumber?: string; trackingUrl?: string; packageWeight?: number }) => {
+        const response = await api.patch(`/orders/${id}/shipping`, shippingData);
         return response;
     },
 
