@@ -75,7 +75,7 @@ export const CategoriesPage = () => {
                 <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
                 <button
                     onClick={handleAddNew}
-                    className="flex items-center gap-2 bg-accent text-primary-900 px-4 py-2 rounded-lg hover:bg-accent-hover font-bold transition-all shadow-md active:scale-95"
+                    className="flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover font-bold transition-all shadow-md active:scale-95"
                 >
                     <FiPlus /> Add Category
                 </button>
@@ -166,52 +166,7 @@ export const CategoriesPage = () => {
                                 <p className="text-xs text-gray-500 mt-1">This banner will be shown at the top of the category page.</p>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                <textarea
-                                    rows={3}
-                                    value={formData.description || ''}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
-                                    placeholder="Category description..."
-                                />
-                            </div>
 
-                            <div className="border-t pt-4">
-                                <h3 className="font-medium text-gray-900 mb-3">SEO Settings</h3>
-                                <div className="space-y-3">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Meta Title</label>
-                                        <input
-                                            type="text"
-                                            value={formData.seo?.metaTitle || ''}
-                                            onChange={e => setFormData({ ...formData, seo: { ...formData.seo, metaTitle: e.target.value } })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
-                                            placeholder="SEO Title"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label>
-                                        <textarea
-                                            rows={2}
-                                            value={formData.seo?.metaDescription || ''}
-                                            onChange={e => setFormData({ ...formData, seo: { ...formData.seo, metaDescription: e.target.value } })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
-                                            placeholder="SEO Description"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Keywords</label>
-                                        <input
-                                            type="text"
-                                            value={formData.seo?.metaKeywords || ''}
-                                            onChange={e => setFormData({ ...formData, seo: { ...formData.seo, metaKeywords: e.target.value } })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
-                                            placeholder="keyword1, keyword2, keyword3"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
 
                             <div className="flex items-center gap-2">
                                 <input
@@ -227,7 +182,7 @@ export const CategoriesPage = () => {
 
                         <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
                             <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">Cancel</button>
-                            <button onClick={handleSave} className="px-6 py-2 bg-accent text-primary-900 font-bold rounded-lg hover:bg-accent-hover transition-all flex items-center gap-2 shadow-md active:scale-95">
+                            <button onClick={handleSave} className="px-6 py-2 bg-accent text-white font-bold rounded-lg hover:bg-accent-hover transition-all flex items-center gap-2 shadow-md active:scale-95">
                                 <FiCheck /> Save Changes
                             </button>
                         </div>

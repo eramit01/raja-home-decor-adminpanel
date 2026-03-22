@@ -37,31 +37,35 @@ export const DashboardPage = () => {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        let params: any = {};
+        let params: any = { _t: new Date().getTime() };
 
         const now = new Date();
         if (dateRange === 'today') {
-          const start = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-          const end = new Date(now.setHours(23, 59, 59, 999)).toISOString();
-          params = { startDate: start, endDate: end };
+          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+          const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+          params.startDate = start.toISOString();
+          params.endDate = end.toISOString();
         } else if (dateRange === '7days') {
-          const start = new Date();
-          start.setDate(start.getDate() - 7);
-          params = { startDate: start.toISOString(), endDate: new Date().toISOString() };
+          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 0, 0, 0, 0);
+          const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+          params.startDate = start.toISOString();
+          params.endDate = end.toISOString();
         } else if (dateRange === '30days') {
-          const start = new Date();
-          start.setDate(start.getDate() - 30);
-          params = { startDate: start.toISOString(), endDate: new Date().toISOString() };
+          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30, 0, 0, 0, 0);
+          const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+          params.startDate = start.toISOString();
+          params.endDate = end.toISOString();
         } else if (dateRange === 'custom') {
           if (!customDates.start || !customDates.end) {
             setLoading(false);
             return;
           }
-          const start = new Date(customDates.start);
-          start.setHours(0, 0, 0, 0);
-          const end = new Date(customDates.end);
-          end.setHours(23, 59, 59, 999);
-          params = { startDate: start.toISOString(), endDate: end.toISOString() };
+          const [startYear, startMonth, startDay] = customDates.start.split('-').map(Number);
+          const start = new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0);
+          const [endYear, endMonth, endDay] = customDates.end.split('-').map(Number);
+          const end = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
+          params.startDate = start.toISOString();
+          params.endDate = end.toISOString();
         }
 
         const data = await adminService.getDashboardStats(params);

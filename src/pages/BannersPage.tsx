@@ -133,7 +133,7 @@ export const BannersPage = () => {
             setFormData({ title: '', image: '', link: '', isActive: true, order: 0, startDate: '', endDate: '' });
             setIsPanelOpen(true);
           }}
-          className="flex items-center gap-2 bg-accent text-primary-900 px-4 py-2 rounded-lg hover:bg-accent-hover transition-all shadow-md font-bold active:scale-95"
+          className="flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition-all shadow-md font-bold active:scale-95"
         >
           <FiPlus /> Add Banner
         </button>
@@ -337,7 +337,7 @@ export const BannersPage = () => {
               </div>
 
               <div className="pt-8">
-                <button type="submit" className="w-full bg-accent text-primary-900 font-bold py-3 text-lg rounded-xl hover:bg-accent-hover transition-all shadow-lg active:scale-95">
+                <button type="submit" className="w-full bg-accent text-white font-bold py-3 text-lg rounded-xl hover:bg-accent-hover transition-all shadow-lg active:scale-95">
                   {editingBanner ? 'Update Banner' : 'Create Banner'}
                 </button>
               </div>
