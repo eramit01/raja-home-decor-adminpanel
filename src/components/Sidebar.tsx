@@ -10,6 +10,7 @@ import {
   FiList,
   FiTag,
   FiSettings,
+  FiVideo,
 } from 'react-icons/fi';
 
 const menuItems = [
@@ -20,6 +21,7 @@ const menuItems = [
   { path: '/bulk-enquiries', icon: FiMessageSquare, label: 'Bulk Enquiries' },
   { path: '/reviews', icon: FiStar, label: 'Reviews' },
   { path: '/banners', icon: FiImage, label: 'Banners' },
+  { path: '/stories', icon: FiVideo, label: 'Stories' },
   { path: '/categories', icon: FiList, label: 'Categories' },
   { path: '/coupons', icon: FiTag, label: 'Coupons' },
   { path: '/settings', icon: FiSettings, label: 'Settings' },

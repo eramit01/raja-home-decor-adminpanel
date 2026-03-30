@@ -8,13 +8,14 @@ export interface Banner {
     link?: string;
     order: number;
     isActive: boolean;
+    page: 'home' | 'bulk-enquiry';
     startDate?: string;
     endDate?: string;
 }
 
 export const BannerService = {
-    getAllBanners: async () => {
-        const response = await api.get('/banners/all'); // Backend Admin route
+    getAllBanners: async (page?: string) => {
+        const response = await api.get('/banners/all', { params: { page } });
         return response.data.data.banners;
     },
 

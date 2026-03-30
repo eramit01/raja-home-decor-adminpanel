@@ -12,6 +12,7 @@ import { BannersPage } from './pages/BannersPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { CouponsPage } from './pages/CouponsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { StoriesPage } from './pages/StoriesPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="coupons" element={<CouponsPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="stories" element={<StoriesPage />} />
       </Route>
     </Routes>
   );

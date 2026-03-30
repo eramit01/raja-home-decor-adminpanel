@@ -17,6 +17,7 @@ export const BannersPage = () => {
     link: '',
     isActive: true,
     order: 0,
+    page: 'home',
     startDate: '',
     endDate: ''
   });
@@ -112,6 +113,7 @@ export const BannersPage = () => {
       link: banner.link,
       isActive: banner.isActive,
       order: banner.order,
+      page: banner.page || 'home',
       startDate: banner.startDate,
       endDate: banner.endDate
     });
@@ -130,7 +132,7 @@ export const BannersPage = () => {
         <button
           onClick={() => {
             setEditingBanner(null);
-            setFormData({ title: '', image: '', link: '', isActive: true, order: 0, startDate: '', endDate: '' });
+            setFormData({ title: '', image: '', link: '', isActive: true, order: 0, page: 'home', startDate: '', endDate: '' });
             setIsPanelOpen(true);
           }}
           className="flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition-all shadow-md font-bold active:scale-95"
@@ -154,6 +156,11 @@ export const BannersPage = () => {
                   <span className="bg-gray-800/80 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Inactive</span>
                 </div>
               )}
+              <div className="absolute top-2 left-2">
+                <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm ${banner.page === 'bulk-enquiry' ? 'bg-purple-600 text-white' : 'bg-blue-600 text-white'}`}>
+                  {banner.page === 'bulk-enquiry' ? 'Bulk Page' : 'Home Page'}
+                </span>
+              </div>
               <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => openEdit(banner)}
@@ -312,7 +319,19 @@ export const BannersPage = () => {
                 </div>
               </div>
 
-              <div className="border-t border-gray-100 pt-4">
+              <div className="pt-4 border-t border-gray-100">
+                <label className="label">Target Page</label>
+                <select
+                  className="input"
+                  value={formData.page}
+                  onChange={e => setFormData({ ...formData, page: e.target.value as any })}
+                >
+                  <option value="home">Home Page Slider</option>
+                  <option value="bulk-enquiry">Bulk Enquiry Page Slider</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Select where this banner should be displayed</p>
+              </div>
+              <div className="pt-4 border-t border-gray-100">
                 <h4 className="text-sm font-bold text-gray-900 mb-3">Scheduling (Optional)</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
