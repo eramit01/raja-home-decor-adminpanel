@@ -148,9 +148,9 @@ export const StoriesPage = () => {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {stories.map(story => (
-                    <div key={story.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden group">
+                    <div key={story.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
                         <div className="relative aspect-[9/16] bg-gray-100">
                             {getYoutubeEmbedUrl(story.videoUrl) ? (
                                 <iframe
@@ -167,26 +167,28 @@ export const StoriesPage = () => {
                                     className={`w-full h-full object-cover ${story.isActive ? '' : 'grayscale opacity-50'}`}
                                     muted
                                     loop
+                                    playsInline
                                 />
                             )}
-                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => openEdit(story)} className="p-2 bg-white/90 text-blue-500 rounded-lg shadow-sm"><FiEdit2 /></button>
-                                <button onClick={() => handleDelete(story.id)} className="p-2 bg-white/90 text-red-500 rounded-lg shadow-sm"><FiTrash2 /></button>
+                            <div className="absolute top-2 right-2 flex gap-1.5 z-10">
+                                <button onClick={() => openEdit(story)} className="p-1.5 sm:p-2 bg-white/90 text-blue-600 rounded-lg shadow-sm hover:bg-white transition-colors border border-gray-200" title="Edit Story"><FiEdit2 size={14} className="sm:w-4 sm:h-4" /></button>
+                                <button onClick={() => handleDelete(story.id)} className="p-1.5 sm:p-2 bg-white/90 text-red-600 rounded-lg shadow-sm hover:bg-white transition-colors border border-gray-200" title="Delete Story"><FiTrash2 size={14} className="sm:w-4 sm:h-4" /></button>
                             </div>
                             {!story.isActive && (
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
                                     <span className="bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold">INACTIVE</span>
                                 </div>
                             )}
                         </div>
-                        <div className="p-4 flex justify-between items-center">
-                            <div className="overflow-hidden">
-                                <h3 className="font-bold text-gray-900 truncate" title={story.title}>{story.title}</h3>
-                                <p className="text-xs text-gray-500">Views: {story.views} | Order: {story.order}</p>
+                        <div className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 flex-grow">
+                            <div className="overflow-hidden w-full">
+                                <h3 className="font-bold text-gray-900 truncate text-sm sm:text-base relative z-10" title={story.title}>{story.title}</h3>
+                                <p className="text-[10px] sm:text-xs text-gray-500">Views: {story.views} | Order: {story.order}</p>
                             </div>
                             <button
                                 onClick={() => toggleStatus(story.id, story.isActive)}
-                                className={`text-2xl ${story.isActive ? 'text-green-500' : 'text-gray-300'}`}
+                                className={`text-xl sm:text-2xl flex-shrink-0 relative z-10 ${story.isActive ? 'text-green-500' : 'text-gray-300'} hover:opacity-80 transition-opacity`}
+                                title={story.isActive ? 'Deactivate Story' : 'Activate Story'}
                             >
                                 {story.isActive ? <FiToggleRight /> : <FiToggleLeft />}
                             </button>
