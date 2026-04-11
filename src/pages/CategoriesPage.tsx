@@ -81,8 +81,8 @@ export const CategoriesPage = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <table className="w-full text-left">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden overflow-x-auto">
+                <table className="w-full text-left whitespace-nowrap">
                     <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Image</th>
