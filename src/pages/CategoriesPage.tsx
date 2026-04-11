@@ -156,14 +156,25 @@ export const CategoriesPage = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Banner Image URL (Category Page)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Desktop Banner Image URL</label>
                                 <input
                                     type="text"
                                     value={formData.banner || ''}
                                     onChange={e => setFormData({ ...formData, banner: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">This banner will be shown at the top of the category page.</p>
+                                <p className="text-xs text-gray-500 mt-1">This banner will be shown at the top of the category page on desktop.</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Banner Image URL (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={formData.mobileBanner || ''}
+                                    onChange={e => setFormData({ ...formData, mobileBanner: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none transition-all"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Shown on mobile devices. Recommended size: 1536x1024px.</p>
                             </div>
 
 

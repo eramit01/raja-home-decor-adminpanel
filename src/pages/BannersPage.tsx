@@ -14,6 +14,7 @@ export const BannersPage = () => {
   const [formData, setFormData] = useState<Partial<Banner>>({
     title: '',
     image: '',
+    mobileImage: '',
     link: '',
     isActive: true,
     order: 0,
@@ -74,7 +75,7 @@ export const BannersPage = () => {
 
       setIsPanelOpen(false);
       setEditingBanner(null);
-      setFormData({ title: '', image: '', link: '', isActive: true, order: 0, startDate: '', endDate: '' });
+      setFormData({ title: '', image: '', mobileImage: '', link: '', isActive: true, order: 0, startDate: '', endDate: '' });
       fetchBanners();
     } catch (error) {
       console.error("Failed to save banner", error);
@@ -110,6 +111,7 @@ export const BannersPage = () => {
     setFormData({
       title: banner.title,
       image: banner.image,
+      mobileImage: banner.mobileImage || '',
       link: banner.link,
       isActive: banner.isActive,
       order: banner.order,
@@ -132,7 +134,7 @@ export const BannersPage = () => {
         <button
           onClick={() => {
             setEditingBanner(null);
-            setFormData({ title: '', image: '', link: '', isActive: true, order: 0, page: 'home', startDate: '', endDate: '' });
+            setFormData({ title: '', image: '', mobileImage: '', link: '', isActive: true, order: 0, page: 'home', startDate: '', endDate: '' });
             setIsPanelOpen(true);
           }}
           className="flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition-all shadow-md font-bold active:scale-95"
@@ -240,7 +242,7 @@ export const BannersPage = () => {
               </div>
 
               <div>
-                <label className="label">Image URL</label>
+                <label className="label">Desktop Image URL</label>
                 <input
                   type="url"
                   className="input"
@@ -250,6 +252,18 @@ export const BannersPage = () => {
                   onChange={e => setFormData({ ...formData, image: e.target.value })}
                 />
                 <p className="text-xs text-gray-500 mt-1">Recommended size: 1900x650px</p>
+              </div>
+
+              <div>
+                <label className="label">Mobile Image URL (Optional)</label>
+                <input
+                  type="url"
+                  className="input"
+                  placeholder="https://..."
+                  value={formData.mobileImage || ''}
+                  onChange={e => setFormData({ ...formData, mobileImage: e.target.value })}
+                />
+                <p className="text-xs text-gray-500 mt-1">Recommended size: 1536x1024px</p>
               </div>
 
               <div>

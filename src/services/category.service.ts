@@ -7,6 +7,7 @@ export interface Category {
     description?: string;
     image?: string;
     banner?: string;
+    mobileBanner?: string;
     seo?: {
         metaTitle?: string;
         metaDescription?: string;
