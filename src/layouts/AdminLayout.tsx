@@ -19,7 +19,7 @@ export const AdminLayout = () => {
       <div
         className={`fixed inset-y-0 left-0 transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:static lg:inset-0 z-30 transition-transform duration-300 ease-in-out`}
+        } lg:translate-x-0 lg:static lg:inset-0 z-30 transition-all duration-300 ease-in-out w-64`}
       >
         <Sidebar onClose={() => setIsSidebarOpen(false)} />
       </div>

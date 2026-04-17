@@ -137,24 +137,24 @@ export const OrdersPage = () => {
       </div>
 
       {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col lg:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex-1 relative border border-slate-200 rounded-lg bg-slate-50 flex items-center overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
           <FiSearch className="absolute left-3 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by Order ID or Phone..."
+            placeholder="Search Order ID or Phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-transparent outline-none text-sm font-medium text-slate-700 placeholder:text-slate-400"
+            className="w-full pl-10 pr-4 py-3 md:py-2 bg-transparent outline-none text-sm font-medium text-slate-700 placeholder:text-slate-400"
           />
         </div>
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 lg:flex gap-3">
           <select
-            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-700 cursor-pointer transition-all"
+            className="flex-1 lg:w-40 px-4 py-3 md:py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-700 cursor-pointer transition-all"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
-            <option value="All">All Statuses</option>
+            <option value="All">All Status</option>
             <option value="Pending">Pending</option>
             <option value="Confirmed">Confirmed</option>
             <option value="Packed">Packed</option>
@@ -163,11 +163,11 @@ export const OrdersPage = () => {
             <option value="Cancelled">Cancelled</option>
           </select>
           <select
-            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-700 cursor-pointer transition-all"
+            className="flex-1 lg:w-40 px-4 py-3 md:py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-700 cursor-pointer transition-all"
             value={filterPayment}
             onChange={(e) => setFilterPayment(e.target.value)}
           >
-            <option value="All">All Payments</option>
+            <option value="All">All Pay</option>
             <option value="COD">COD</option>
             <option value="Online">Prepaid</option>
           </select>
@@ -197,8 +197,68 @@ export const OrdersPage = () => {
         </div>
       )}
 
-      {/* High-Density Orders Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col relative z-0">
+      {/* Mobile view (List of cards) */}
+      <div className="lg:hidden space-y-4">
+        {loading ? (
+          <div className="p-8 text-center text-slate-400 font-bold uppercase tracking-widest animate-pulse">Loading orders...</div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="p-8 text-center bg-white rounded-xl border border-slate-200 text-slate-400 font-bold uppercase tracking-widest">No orders found.</div>
+        ) : (
+          filteredOrders.map((order) => {
+            const statusLabel = ['Pending Verification', 'Pending'].includes(order.status) ? 'Pending' :
+              ['Payment Success', 'Confirmed'].includes(order.status) ? 'Confirmed' : order.status;
+            
+            return (
+              <div 
+                key={order.id} 
+                onClick={() => navigate(`/orders/${order.id}`)}
+                className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm active:scale-[0.98] transition-all"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="text-xs font-black text-indigo-600 font-mono mb-1">{order.orderNumber}</p>
+                    <h3 className="font-bold text-slate-900">{order.customer.name}</h3>
+                  </div>
+                  <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded border ${getStatusBadge(order.status)}`}>
+                    {statusLabel}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-end">
+                  <div className="text-xs text-slate-500">
+                    <p>{getLocation(order)}</p>
+                    <p className="mt-1 font-bold text-slate-900">₹{order.total.toLocaleString()}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    {statusLabel === 'Confirmed' && (
+                      <button
+                        onClick={(e) => handleUpdateStatus(order.id, 'Packed', e)}
+                        className="p-2 text-purple-700 bg-purple-50 rounded-lg border border-purple-100"
+                      >
+                        <FiBox size={16} />
+                      </button>
+                    )}
+                    {statusLabel === 'Packed' && (
+                      <button
+                        onClick={(e) => handleUpdateStatus(order.id, 'Shipped', e)}
+                        className="p-2 text-indigo-700 bg-indigo-50 rounded-lg border border-indigo-100"
+                      >
+                        <FiTruck size={16} />
+                      </button>
+                    )}
+                    <button className="p-2 text-slate-500 bg-slate-50 rounded-lg border border-slate-100">
+                      <FiEye size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+
+      {/* Desktop view (High-Density Orders Table) */}
+      <div className="hidden lg:flex bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex-col relative z-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead className="bg-slate-50 border-b border-slate-200">

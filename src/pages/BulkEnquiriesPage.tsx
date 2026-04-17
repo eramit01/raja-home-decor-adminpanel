@@ -76,12 +76,12 @@ export const BulkEnquiriesPage = () => {
           <p className="text-gray-500 text-sm mt-0.5 font-medium">Nurture B2B leads and manage corporate relationships</p>
         </div>
 
-        <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl">
+        <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl w-full sm:w-auto">
           {['all', 'pending', 'contacted', 'confirmed', 'rejected', 'archived'].map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === f
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${filter === f
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-900'
                 }`}
@@ -141,46 +141,46 @@ export const BulkEnquiriesPage = () => {
             >
               <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center">
                 {/* User Info */}
-                <div className="flex-1 min-w-0 w-full sm:w-auto">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border whitespace-nowrap ${getStatusColor(enquiry.status)}`}>
+                <div className="flex-1 min-w-0 w-full">
+                  <div className="flex items-center gap-3 mb-3 sm:mb-2">
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-black border whitespace-nowrap ${getStatusColor(enquiry.status)}`}>
                       {enquiry.status.toUpperCase()}
                     </span>
-                    <h3 className="text-base font-bold text-gray-900 truncate">{enquiry.name}</h3>
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900 truncate">{enquiry.name}</h3>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs text-gray-500 font-medium">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <FiBriefcase className="flex-shrink-0" size={14} />
-                      <span className="truncate">{enquiry.company || 'Private Party'}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-[11px] sm:text-xs text-gray-500 font-medium">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FiBriefcase className="flex-shrink-0 text-indigo-500" size={14} />
+                      <span className="truncate">{enquiry.company || 'Private Lead'}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <FiMail className="flex-shrink-0" size={14} />
-                      <span className="truncate">{enquiry.email}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <FiPhone className="flex-shrink-0" size={14} />
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FiPhone className="flex-shrink-0 text-indigo-500" size={14} />
                       <span className="truncate">{enquiry.phone}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <FiPackage className="flex-shrink-0" size={14} />
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FiMail className="flex-shrink-0 text-indigo-500" size={14} />
+                      <span className="truncate">{enquiry.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FiPackage className="flex-shrink-0 text-indigo-500" size={14} />
                       <span className="truncate">{enquiry.category || 'General'}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Message Snippet */}
-                <div className="flex-[0.8] w-full xl:w-auto bg-gray-50 p-3 rounded-lg border border-gray-100 relative group-hover:bg-gray-100 transition-colors">
+                <div className="w-full xl:flex-[0.8] bg-gray-50 p-3 rounded-xl border border-gray-100 relative group-hover:bg-gray-100 transition-colors">
                   <p className="text-xs text-gray-600 line-clamp-1 italic pr-16 leading-relaxed">
                     "{enquiry.message}"
                   </p>
-                  <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-gray-100 shadow-xs">
-                    <span className="text-[10px] font-bold text-gray-900 leading-none">Qty: {enquiry.quantity}</span>
+                  <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-gray-100 shadow-sm">
+                    <span className="text-[10px] font-black text-gray-900 leading-none">Qty: {enquiry.quantity}</span>
                   </div>
                 </div>
 
                 {/* Quick Actions */}
-                <div className="flex items-center gap-2 w-full xl:w-auto xl:pl-4 xl:border-l border-gray-100">
+                <div className="flex items-center gap-2 w-full xl:w-auto xl:pl-4 xl:border-l border-gray-100 mt-2 xl:mt-0">
                   <div className="flex gap-2 w-full">
                     <ActionButton
                       icon={FiClock}

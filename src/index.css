@@ -22,6 +22,20 @@
   --bg-premium: #ffffff;
   --text-main: #000000;
   --text-gold: #525252;
+
+  /* Shipping Palette */
+  --ship-indigo: #4f46e5;
+  --ship-amber: #f59e0b;
+  --ship-emerald: #10b981;
+  --ship-rose: #ef4444;
+}
+
+.glass {
+  @apply bg-white/70 backdrop-blur-md border border-white/20;
+}
+
+.glass-dark {
+  @apply bg-black/70 backdrop-blur-md border border-white/10;
 }
 
 @layer components {

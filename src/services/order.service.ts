@@ -66,6 +66,8 @@ export interface Order {
         width: number;
         height: number;
     };
+    shiprocketOrderId?: number;
+    shiprocketShipmentId?: number;
 }
 
 // Mock Data
@@ -124,7 +126,9 @@ const mapOrder = (o: any): Order => ({
     trackingUrl: o.trackingUrl,
     packageWeight: o.packageWeight,
     discount: o.discount || 0,
-    dimensions: o.dimensions
+    dimensions: o.dimensions,
+    shiprocketOrderId: o.shiprocketOrderId,
+    shiprocketShipmentId: o.shiprocketShipmentId
 });
 
 export const orderService = {
@@ -178,6 +182,22 @@ export const orderService = {
 
     deleteOrder: async (id: string) => {
         const response = await api.delete(`/orders/${id}`);
+        return response.data;
+    },
+
+    // Shiprocket Actions
+    createShiprocketOrder: async (orderId: string) => {
+        const response = await api.post(`/orders/admin/shiprocket/create-order/${orderId}`);
+        return response.data;
+    },
+
+    generateShiprocketAWB: async (orderId: string) => {
+        const response = await api.post(`/orders/admin/shiprocket/generate-awb/${orderId}`);
+        return response.data;
+    },
+
+    getShiprocketLabel: async (shipmentId: number) => {
+        const response = await api.get(`/orders/admin/shiprocket/label/${shipmentId}`);
         return response.data;
     }
 };

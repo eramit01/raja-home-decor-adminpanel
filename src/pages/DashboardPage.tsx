@@ -92,10 +92,10 @@ export const DashboardPage = () => {
         </div>
 
         {/* Date Filter */}
-        <div className="flex flex-wrap items-center gap-3 bg-white px-3 py-2 rounded-xl border border-gray-200/60 shadow-sm">
-          <FiCalendar className="text-gray-400" />
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-white px-2 sm:px-3 py-2 rounded-xl border border-gray-200/60 shadow-sm w-full md:w-auto">
+          <FiCalendar className="text-gray-400 shrink-0" />
           <select
-            className="bg-transparent border-none text-sm font-semibold text-gray-700 outline-none cursor-pointer pr-4"
+            className="flex-1 md:flex-none bg-transparent border-none text-[13px] sm:text-sm font-semibold text-gray-700 outline-none cursor-pointer pr-4"
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
           >
@@ -107,17 +107,17 @@ export const DashboardPage = () => {
           </select>
 
           {dateRange === 'custom' && (
-            <div className="flex items-center gap-2 text-sm border-l pl-3 border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm border-t sm:border-t-0 sm:border-l pt-2 sm:pt-0 sm:pl-3 border-gray-200 w-full sm:w-auto">
               <input
                 type="date"
-                className="bg-gray-50 border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-accent text-gray-600"
+                className="bg-gray-50 border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-indigo-500 text-gray-600 text-xs"
                 value={customDates.start}
                 onChange={(e) => setCustomDates(prev => ({ ...prev, start: e.target.value }))}
               />
-              <span className="text-gray-400">to</span>
+              <span className="text-gray-400 text-center hidden sm:inline">to</span>
               <input
                 type="date"
-                className="bg-gray-50 border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-accent text-gray-600"
+                className="bg-gray-50 border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-indigo-500 text-gray-600 text-xs"
                 value={customDates.end}
                 onChange={(e) => setCustomDates(prev => ({ ...prev, end: e.target.value }))}
               />
@@ -127,7 +127,7 @@ export const DashboardPage = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <DashboardCard
           title="Total Revenue"
           value={`₹${stats.totalRevenue?.toLocaleString() || 0}`}
@@ -201,11 +201,11 @@ export const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Orders - Takes up 2/3 */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-6">
-          <h2 className="font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="flex gap-4">
-            <Link to="/orders" className="text-primary-900 hover:text-accent bg-accent/10 hover:bg-accent/20 px-5 py-2.5 rounded-xl font-bold transition-all border border-accent/10">View Orders</Link>
-            <Link to="/products" className="text-primary-900 hover:text-accent bg-accent/10 hover:bg-accent/20 px-5 py-2.5 rounded-xl font-bold transition-all border border-accent/10">Manage Products</Link>
-            <Link to="/bulk-enquiries" className="text-primary-900 hover:text-accent bg-accent/10 hover:bg-accent/20 px-5 py-2.5 rounded-xl font-bold transition-all border border-accent/10">B2B Enquiries</Link>
+          <h2 className="font-bold text-gray-900 mb-4 uppercase tracking-widest text-[11px] opacity-50">Quick Actions</h2>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link to="/orders" className="text-center text-primary-900 hover:text-white bg-indigo-50 hover:bg-indigo-600 px-5 py-3 rounded-xl font-bold transition-all border border-indigo-100 flex-1">Orders</Link>
+            <Link to="/products" className="text-center text-primary-900 hover:text-white bg-indigo-50 hover:bg-indigo-600 px-5 py-3 rounded-xl font-bold transition-all border border-indigo-100 flex-1">Products</Link>
+            <Link to="/bulk-enquiries" className="text-center text-primary-900 hover:text-white bg-indigo-50 hover:bg-indigo-600 px-5 py-3 rounded-xl font-bold transition-all border border-indigo-100 flex-1">Enquiries</Link>
           </div>
         </div>
 
