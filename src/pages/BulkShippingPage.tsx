@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiCheckSquare, FiPackage, FiTruck, FiPrinter, FiSearch, FiRefreshCcw, FiCheckCircle, FiXCircle, FiLoader, FiInfo } from 'react-icons/fi';
+import { FiCheckSquare, FiTruck, FiSearch, FiRefreshCcw, FiCheckCircle, FiXCircle, FiLoader } from 'react-icons/fi';
 import { orderService, Order } from '../services/order.service';
 
 export const BulkShippingPage = () => {
@@ -246,7 +246,7 @@ export const BulkShippingPage = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                orders.map((order, idx) => {
+                                orders.map((order) => {
                                     const isSelected = selectedOrderIds.includes(order.id);
                                     const isProcessingNow = isProcessing && processingIndex === selectedOrderIds.indexOf(order.id);
                                     

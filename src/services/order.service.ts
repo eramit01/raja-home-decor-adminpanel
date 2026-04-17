@@ -68,6 +68,12 @@ export interface Order {
     };
     shiprocketOrderId?: number;
     shiprocketShipmentId?: number;
+    trackingHistory?: {
+        status: string;
+        activity: string;
+        location: string;
+        timestamp: string;
+    }[];
 }
 
 // Mock Data
@@ -128,7 +134,8 @@ const mapOrder = (o: any): Order => ({
     discount: o.discount || 0,
     dimensions: o.dimensions,
     shiprocketOrderId: o.shiprocketOrderId,
-    shiprocketShipmentId: o.shiprocketShipmentId
+    shiprocketShipmentId: o.shiprocketShipmentId,
+    trackingHistory: o.trackingHistory || []
 });
 
 export const orderService = {

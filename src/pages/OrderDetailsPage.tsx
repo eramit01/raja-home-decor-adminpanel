@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiClock, FiPrinter, FiCheckCircle, FiPhone, FiMail, FiTag, FiTruck, FiBox, FiSave, FiCopy, FiExternalLink, FiMessageCircle, FiChevronRight } from 'react-icons/fi';
+import { FiArrowLeft, FiClock, FiPrinter, FiCheckCircle, FiPhone, FiMail, FiTag, FiTruck, FiBox, FiSave, FiCopy, FiExternalLink, FiMessageCircle, FiChevronRight, FiMapPin } from 'react-icons/fi';
 import { orderService, Order, OrderItem } from '../services/order.service';
 
 const company = {
@@ -579,7 +579,7 @@ export const OrderDetailsPage: React.FC = () => {
                                                                     <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Live Tracking Feed</p>
                                                                 </div>
                                                                 <div className="space-y-6 relative pl-4 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[1px] before:bg-gray-100">
-                                                                    {order.trackingHistory.map((item, idx) => (
+                                                                    {order.trackingHistory.map((item: any, idx: number) => (
                                                                         <div key={idx} className="relative group">
                                                                             <div className={`absolute -left-5 top-1 w-2 h-2 rounded-full border-2 bg-white transition-all ${idx === 0 ? 'border-indigo-600 scale-125' : 'border-gray-200'}`}></div>
                                                                             <div>
