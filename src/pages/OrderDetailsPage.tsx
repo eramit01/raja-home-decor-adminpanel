@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiClock, FiPrinter, FiCheckCircle, FiPhone, FiMail, FiTag, FiTruck, FiBox, FiSave, FiCopy, FiExternalLink, FiMessageCircle, FiChevronRight, FiMapPin } from 'react-icons/fi';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { FiArrowLeft, FiClock, FiPrinter, FiCheckCircle, FiPhone, FiMail, FiTag, FiTruck, FiBox, FiSave, FiCopy, FiExternalLink, FiMessageCircle, FiChevronRight, FiMapPin, FiTrash2 } from 'react-icons/fi';
 import { orderService, Order, OrderItem } from '../services/order.service';
 
 const company = {
@@ -13,9 +13,9 @@ const company = {
 
 export const OrderDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
-    const [printMode, setPrintMode] = useState<'invoice' | 'label' | null>(null);
 
     const [shippingForm, setShippingForm] = useState({
         courierName: '',
@@ -30,14 +30,6 @@ export const OrderDetailsPage: React.FC = () => {
     useEffect(() => {
         loadOrder();
     }, [id]);
-
-    const handlePrint = (mode: 'invoice' | 'label') => {
-        setPrintMode(mode);
-        setTimeout(() => {
-            window.print();
-            setTimeout(() => setPrintMode(null), 500);
-        }, 800);
-    };
 
     const loadOrder = async () => {
         if (!id) return;
@@ -68,6 +60,20 @@ export const OrderDetailsPage: React.FC = () => {
         } catch (error) {
             console.error("Error updating status:", error);
             alert("Failed to update status");
+        }
+    };
+
+    const handleDeleteOrder = async () => {
+        if (!order) return;
+        if (!window.confirm("Are you sure you want to delete this order? This action cannot be undone.")) return;
+        
+        try {
+            await orderService.deleteOrder(order.id);
+            alert("Order deleted successfully");
+            navigate('/orders');
+        } catch (error) {
+            console.error("Failed to delete order", error);
+            alert("Failed to delete order");
         }
     };
 
@@ -147,6 +153,22 @@ export const OrderDetailsPage: React.FC = () => {
         }
     };
 
+    const handleShiprocketGetInvoice = async () => {
+        if (!order || !order.shiprocketOrderId) return;
+        try {
+            const res = await orderService.getShiprocketInvoice(order.id);
+            const invoiceUrl = res.data?.invoice_url;
+            if (invoiceUrl) {
+                window.open(invoiceUrl, '_blank');
+            } else {
+                alert(res.data?.message || "Invoice not available yet");
+            }
+        } catch (error: any) {
+            console.error("Invoice fetch failed", error);
+            alert(error.response?.data?.message || "Failed to fetch invoice");
+        }
+    };
+
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         // Simple visual feedback could be added here
@@ -199,8 +221,8 @@ export const OrderDetailsPage: React.FC = () => {
 
     return (
         <div className="space-y-6 pb-24 relative bg-gray-50 min-h-screen">
-            {/* SCREEN UI - HIDDEN DURING PRINT */}
-            <div className={`no-print max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 ${printMode ? 'hidden' : ''}`}>
+            {/* SCREEN UI */}
+            <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6`}>
 
                 {/* 1. Order Overview (Sticky Top Summary Bar) */}
                 <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white border-b border-gray-200 shadow-sm mb-6">
@@ -245,14 +267,6 @@ export const OrderDetailsPage: React.FC = () => {
                                     <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">Total</p>
                                     <p className="text-base md:text-xl font-black text-gray-900 leading-none">₹{order.total.toLocaleString()}</p>
                                 </div>
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => handlePrint('invoice')} className="bg-gray-900 text-white p-2.5 md:px-4 md:py-2 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2 shadow-sm active:scale-95">
-                                    <FiPrinter className="w-4 h-4" /> <span className="hidden md:inline">Invoice</span>
-                                </button>
-                                <button onClick={() => handlePrint('label')} className="bg-white text-gray-700 border border-gray-300 p-2.5 md:px-4 md:py-2 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm active:scale-95">
-                                    <FiTag className="w-4 h-4" /> <span className="hidden md:inline">Label</span>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -564,12 +578,20 @@ export const OrderDetailsPage: React.FC = () => {
                                                                 <FiCheckCircle className="w-6 h-6" />
                                                             </div>
                                                         </div>
-                                                        <button
-                                                            onClick={handleShiprocketGetLabel}
-                                                            className="w-full py-4 bg-white text-gray-900 border-2 border-gray-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
-                                                        >
-                                                            <FiPrinter className="w-4 h-4" /> Print Shiprocket Label
-                                                        </button>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={handleShiprocketGetLabel}
+                                                                className="flex-1 py-4 bg-white text-gray-900 border-2 border-gray-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+                                                            >
+                                                                <FiPrinter className="w-4 h-4" /> Print Label
+                                                            </button>
+                                                            <button
+                                                                onClick={handleShiprocketGetInvoice}
+                                                                className="flex-1 py-4 bg-gray-900 text-white border-2 border-gray-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+                                                            >
+                                                                <FiPrinter className="w-4 h-4" /> Print Invoice
+                                                            </button>
+                                                        </div>
 
                                                         {/* Live Tracking Timeline */}
                                                         {order.trackingHistory && order.trackingHistory.length > 0 && (
@@ -664,7 +686,7 @@ export const OrderDetailsPage: React.FC = () => {
                 </div>
 
                 {/* STICKY BOTTOM ACTION BAR */}
-                <div className={`fixed bottom-0 left-0 md:left-64 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 flex flex-col sm:flex-row items-center justify-between no-print gap-4 transition-all ${printMode ? 'hidden' : ''}`}>
+                <div className={`fixed bottom-0 left-0 md:left-64 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all`}>
                     <div className="text-sm font-bold text-gray-700 hidden lg:block uppercase tracking-widest">
                         Update Order Status
                     </div>
@@ -696,165 +718,14 @@ export const OrderDetailsPage: React.FC = () => {
                                 Cancel Order
                             </button>
                         )}
+                        
+                        <button onClick={handleDeleteOrder} className="flex-1 sm:flex-none px-5 py-2.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:text-red-700 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2">
+                            <FiTrash2 className="w-4 h-4" /> Delete Order
+                        </button>
                     </div>
                 </div>
 
             </div>
-
-            {/* PRINT-ONLY INVOICE (A4) */}
-            <div className={`bg-white text-black font-sans p-8 ${printMode === 'invoice' ? 'block' : 'hidden'} print:block print:absolute print:top-0 print:left-0 print:w-full`} id="invoice">
-                <div className="flex justify-between items-start border-b-2 border-black pb-6 mb-6">
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-black uppercase tracking-tight">{company.name}</h1>
-                        <p className="text-[10px] font-bold uppercase text-slate-600 leading-tight pr-10">{company.address}</p>
-                        <p className="text-[10px] font-bold mt-2">GSTIN: {company.gst}</p>
-                        <p className="text-[10px] font-medium mt-1">E: {company.email} | P: {company.phone}</p>
-                    </div>
-                    <div className="text-right space-y-1 shrink-0">
-                        <h2 className="text-xl font-black uppercase tracking-widest text-slate-300">TAX INVOICE</h2>
-                        <p className="text-xs font-bold uppercase">Invoice No: {order.orderNumber.slice(-10).toUpperCase()}</p>
-                        <p className="text-xs font-bold uppercase">Date: {new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-8 mb-8">
-                    <div>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">Billing & Shipping Details</p>
-                        <h3 className="text-sm font-black uppercase mb-1">{order.customer.name}</h3>
-                        <p className="text-[10px] font-bold text-slate-700 leading-relaxed uppercase max-w-xs">{order.customer.address}</p>
-                        <p className="text-[11px] font-black mt-3">CONTACT: {order.customer.phone}</p>
-                    </div>
-                    <div className="flex flex-col items-end justify-center">
-                        <div className="border border-slate-200 p-4 rounded-lg flex gap-8 bg-slate-50/50">
-                            <div className="text-center">
-                                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Payment</p>
-                                <p className="text-xs font-black uppercase">{order.paymentMethod}</p>
-                            </div>
-                            <div className="text-center border-l border-slate-200 pl-8">
-                                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Status</p>
-                                <p className="text-xs font-black uppercase">{order.paymentStatus}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <table className="w-full mb-8 border-collapse">
-                    <thead>
-                        <tr className="bg-black text-white text-[9px] font-bold uppercase">
-                            <th className="px-4 py-2 text-left">Description</th>
-                            <th className="px-4 py-2 text-center w-16">Qty</th>
-                            <th className="px-4 py-2 text-right w-24">Unit Price</th>
-                            <th className="px-4 py-2 text-right w-24">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 border-b border-black">
-                        {order.items.map((item: OrderItem, idx: number) => (
-                            <tr key={idx}>
-                                <td className="px-4 py-3">
-                                    <p className="text-xs font-black uppercase mb-1">{typeof item.name === 'object' ? JSON.stringify(item.name) : String(item.name)}</p>
-                                    <div className="flex flex-wrap gap-2 opacity-60">
-                                        {item.pack && <span className="text-[8px] font-bold uppercase">Pack: {formatValue(item.pack.label)}</span>}
-                                        {item.variant && <span className="text-[8px] font-bold uppercase">Size: {formatValue(item.variant.label)}</span>}
-                                        {item.fragrance && <span className="text-[8px] font-bold uppercase">Fragrance: {formatValue(item.fragrance)}</span>}
-                                        {item.selectedAttributes && Object.entries(item.selectedAttributes).map(([k, v]: any) => (
-                                            <span key={k} className="text-[8px] font-bold uppercase">{k}: {formatValue(v)}</span>
-                                        ))}
-                                    </div>
-                                </td>
-                                <td className="px-4 py-3 text-center text-xs font-bold">{item.quantity}</td>
-                                <td className="px-4 py-3 text-right text-xs font-bold">₹{item.price.toLocaleString()}</td>
-                                <td className="px-4 py-3 text-right text-xs font-black">₹{(item.price * item.quantity).toLocaleString()}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                <div className="flex justify-end pt-4">
-                    <div className="w-72 space-y-2">
-                        <div className="flex justify-between text-[11px] font-bold text-slate-500">
-                            <span>Subtotal</span>
-                            <span className="text-slate-900">₹{(order.subtotal || 0).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between text-[11px] font-bold text-slate-500">
-                            <span>Output CGST (9.0%)</span>
-                            <span className="text-slate-900">₹{((order.subtotal || 0) * 0.09).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-                        </div>
-                        <div className="flex justify-between text-[11px] font-bold text-slate-500">
-                            <span>Output SGST (9.0%)</span>
-                            <span className="text-slate-900">₹{((order.subtotal || 0) * 0.09).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-                        </div>
-                        <div className="flex justify-between text-[11px] font-bold text-slate-500 pb-2">
-                            <span>Shipping</span>
-                            <span className="text-slate-900">{order.shippingCharges === 0 ? '0.00' : `₹${order.shippingCharges?.toLocaleString()}`}</span>
-                        </div>
-                        <div className="pt-4 border-t-2 border-black flex justify-between items-end">
-                            <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Grand Total</p>
-                                <p className="text-4xl font-black tracking-tighter leading-none">₹{order.total.toLocaleString()}</p>
-                            </div>
-                            <div className="text-center pb-1">
-                                <div className="w-32 h-1 border-b border-black mb-1"></div>
-                                <p className="text-[7px] font-black uppercase">Authorized Signatory</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* PRINT-ONLY LABEL (4x6 thermal) */}
-            <div className={`bg-white text-black font-sans p-6 ${printMode === 'label' ? 'block' : 'hidden'} print:block print:absolute print:top-0 print:left-0 w-[100mm] h-[150mm]`} id="label">
-                <div className="border-[4px] border-black p-4 h-full flex flex-col">
-                    <div className="flex justify-between items-start border-b-[4px] border-black pb-4 mb-4">
-                        <div>
-                            <h1 className="text-2xl font-black uppercase leading-tight">{company.name}</h1>
-                            <p className="text-[9px] font-black mt-1 uppercase tracking-widest bg-black text-white px-2 py-0.5 inline-block">{order.paymentMethod === 'Online' ? 'Prepaid Shipment' : 'COD Shipment'}</p>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-sm font-black uppercase border-2 border-black px-4 py-1">{order.paymentMethod === 'Online' ? 'PREPAID' : 'COD'}</span>
-                            <p className="text-[10px] font-black mt-3 uppercase font-mono tracking-tighter">{order.orderNumber.toUpperCase()}</p>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 space-y-4 py-4">
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">Deliver To:</p>
-                        <h2 className="text-4xl font-black uppercase tracking-tighter leading-[0.9] border-b-[2px] border-black pb-4">{order.customer.name}</h2>
-                        <p className="text-2xl font-black leading-tight uppercase font-mono tracking-tighter pr-4 italic">{order.customer.address}</p>
-                        <p className="text-3xl font-black mt-8 font-mono border-2 border-black p-2 inline-block">TEL: {order.customer.phone}</p>
-                    </div>
-
-                    <div className="border-[4px] border-black p-4 flex flex-col items-center gap-4 bg-white mt-auto">
-                        <img src={`https://barcodeapi.org/api/code128/${order.orderNumber.toUpperCase()}?height=100&width=800&scale=3`} alt="Barcode" className="w-full h-24 grayscale" />
-                        <p className="text-[18px] font-black tracking-[0.8em] font-mono leading-none">{order.orderNumber.toUpperCase()}</p>
-                    </div>
-
-                    <div className="mt-8 grid grid-cols-2 gap-6 items-end">
-                        <div className="border-2 border-black p-2 bg-white self-start w-24">
-                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${order.orderNumber}`} alt="QR" className="w-full grayscale" />
-                        </div>
-                        <div className="text-right space-y-2">
-                            <p className="text-[10px] font-black uppercase opacity-40">Item Density</p>
-                            <p className="text-4xl font-black leading-none">{order.items.reduce((acc: number, i: OrderItem) => acc + i.quantity, 0)} <span className="text-sm">Units</span></p>
-                            {order.packageWeight && (
-                                <p className="text-xl font-black leading-none">{order.packageWeight} KG</p>
-                            )}
-                            <div className="pt-4 border-t border-black opacity-20">
-                                <p className="text-[8px] font-bold uppercase tracking-widest">Seller Marketplace ID</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                @media print {
-                    .no-print { display: none !important; }
-                    #invoice { display: block !important; }
-                    #label { display: block !important; }
-                    @page { margin: 0; }
-                }
-                `
-            }} />
         </div>
     );
 };

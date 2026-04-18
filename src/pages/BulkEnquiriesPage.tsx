@@ -4,7 +4,7 @@ import {
   FiClock, FiArchive, FiPackage,
   FiTrendingUp,
   FiBriefcase, FiMessageSquare, FiCopy,
-  FiX
+  FiX, FiTrash2
 } from 'react-icons/fi';
 import { bulkEnquiryService, BulkEnquiry } from '../services/bulkEnquiry.service';
 import { toast } from 'react-hot-toast';
@@ -48,6 +48,19 @@ export const BulkEnquiriesPage = () => {
       console.error("Failed to update status", error);
       fetchEnquiries(); // Revert
       toast.error("Failed to update status");
+    }
+  };
+
+  const deleteEnquiry = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this enquiry? This cannot be undone.")) return;
+    try {
+      await bulkEnquiryService.deleteEnquiry(id);
+      setEnquiries(prev => prev.filter(e => e.id !== id));
+      toast.success("Enquiry deleted successfully");
+      setSelectedEnquiry(null);
+    } catch (error) {
+      console.error("Failed to delete enquiry", error);
+      toast.error("Failed to delete enquiry");
     }
   };
 
@@ -277,8 +290,15 @@ export const BulkEnquiriesPage = () => {
                 Mark as Contacted
               </button>
               <button
+                onClick={() => deleteEnquiry(selectedEnquiry.id!)}
+                className="px-6 bg-red-50 border border-red-200 text-red-600 py-3.5 rounded-xl font-bold text-sm hover:bg-red-100 transition-all flex items-center justify-center active:scale-95 shadow-sm"
+                title="Delete Enquiry"
+              >
+                <FiTrash2 size={16} />
+              </button>
+              <button
                 onClick={() => setSelectedEnquiry(null)}
-                className="px-6 bg-white border border-gray-200 text-gray-600 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all"
+                className="px-6 bg-white border border-gray-200 text-gray-600 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all shadow-sm active:scale-95"
               >
                 Close
               </button>

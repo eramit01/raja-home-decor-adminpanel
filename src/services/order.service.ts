@@ -206,5 +206,10 @@ export const orderService = {
     getShiprocketLabel: async (shipmentId: number) => {
         const response = await api.get(`/orders/admin/shiprocket/label/${shipmentId}`);
         return response.data;
+    },
+
+    getShiprocketInvoice: async (orderId: string) => {
+        const response = await api.get(`/orders/${orderId}/invoice`);
+        return response.data;
     }
 };

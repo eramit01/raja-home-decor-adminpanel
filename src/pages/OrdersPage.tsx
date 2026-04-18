@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiDownload, FiEye, FiBox, FiTruck, FiXCircle, FiCheckSquare, FiSquare } from 'react-icons/fi';
+import { FiSearch, FiDownload, FiEye, FiBox, FiTruck, FiXCircle, FiCheckSquare, FiSquare, FiTrash2, FiRefreshCw, FiTag, FiFileText } from 'react-icons/fi';
+import { toast } from 'react-hot-toast';
 import { orderService, Order } from '../services/order.service';
 
 export const OrdersPage = () => {
@@ -11,6 +12,7 @@ export const OrdersPage = () => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterPayment, setFilterPayment] = useState('All');
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkProgress, setBulkProgress] = useState('');
 
   useEffect(() => {
     loadOrders();
@@ -41,6 +43,24 @@ export const OrdersPage = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this order? This action cannot be undone.")) return;
+    
+    try {
+      await orderService.deleteOrder(orderId);
+      setOrders(orders.filter(o => o.id !== orderId));
+      if (selectedOrders.has(orderId)) {
+        const newSet = new Set(selectedOrders);
+        newSet.delete(orderId);
+        setSelectedOrders(newSet);
+      }
+    } catch (error) {
+      console.error("Failed to delete order", error);
+      alert("Failed to delete order");
+    }
+  };
+
   const handleBulkUpdateStatus = async (status: string) => {
     if (selectedOrders.size === 0) return;
     try {
@@ -56,6 +76,100 @@ export const OrdersPage = () => {
       alert("Failed to update some orders.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBulkShiprocketSync = async () => {
+    if (selectedOrders.size === 0) return;
+    if (!window.confirm(`Sync ${selectedOrders.size} orders to Shiprocket?`)) return;
+    
+    let processed = 0;
+    setLoading(true);
+    for (const id of Array.from(selectedOrders)) {
+      setBulkProgress(`Syncing ${processed + 1} of ${selectedOrders.size}...`);
+      try {
+        const order = orders.find(o => o.id === id);
+        // Only sync if logic applies
+        if (order && !order.shiprocketOrderId && !['Cancelled'].includes(order.status)) {
+           await orderService.createShiprocketOrder(id);
+        }
+      } catch (err: any) {
+        toast.error("Failed to sync order: " + (err.response?.data?.message || id));
+      }
+      processed++;
+    }
+    setBulkProgress('');
+    toast.success("Bulk sync completed!");
+    loadOrders();
+  };
+
+  const handleBulkGenerateAWB = async () => {
+    if (selectedOrders.size === 0) return;
+    if (!window.confirm(`Generate AWBs for ${selectedOrders.size} synced orders?`)) return;
+
+    let processed = 0;
+    setLoading(true);
+    for (const id of Array.from(selectedOrders)) {
+      setBulkProgress(`Generating AWB ${processed + 1} of ${selectedOrders.size}...`);
+      try {
+        const order = orders.find(o => o.id === id);
+        if (order && order.shiprocketOrderId && !order.awbNumber) {
+           await orderService.generateShiprocketAWB(id);
+        }
+      } catch (err: any) {
+        toast.error("Failed to assign AWB: " + (err.response?.data?.message || id));
+      }
+      processed++;
+    }
+    setBulkProgress('');
+    toast.success("Bulk AWB generation completed!");
+    loadOrders();
+  };
+
+  const handleInlineShiprocketSync = async (e: React.MouseEvent, orderId: string) => {
+    e.stopPropagation();
+    try {
+      setLoading(true);
+      await orderService.createShiprocketOrder(orderId);
+      toast.success("Synced to Shiprocket!");
+      await loadOrders();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Shiprocket Sync Failed");
+      setLoading(false);
+    }
+  };
+
+  const handleInlineGenerateAWB = async (e: React.MouseEvent, orderId: string) => {
+    e.stopPropagation();
+    try {
+      setLoading(true);
+      await orderService.generateShiprocketAWB(orderId);
+      toast.success("AWB Generated!");
+      await loadOrders();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "AWB Fetch Failed");
+      setLoading(false);
+    }
+  };
+
+  const handleInlineGetLabel = async (e: React.MouseEvent, shipmentId: number) => {
+    e.stopPropagation();
+    try {
+      const res = await orderService.getShiprocketLabel(shipmentId);
+      if (res.data?.label_url) window.open(res.data.label_url, '_blank');
+    } catch (error) {
+      toast.error("Failed to fetch label");
+    }
+  };
+
+  const handleInlineGetInvoice = async (e: React.MouseEvent, orderId: string) => {
+    e.stopPropagation();
+    try {
+      const res = await orderService.getShiprocketInvoice(orderId);
+      if (res.data?.invoice_url) window.open(res.data.invoice_url, '_blank');
+      else toast.error(res.data?.message || "Invoice pending");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to fetch invoice");
     }
   };
 
@@ -176,11 +290,24 @@ export const OrdersPage = () => {
 
       {/* Bulk Actions Header (Sticky-ish) */}
       {selectedOrders.size > 0 && (
-        <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex items-center justify-between shadow-sm animate-fade-in">
-          <span className="text-sm font-bold text-indigo-900">
+        <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between shadow-sm animate-fade-in gap-4">
+          <span className="text-sm font-bold text-indigo-900 flex items-center gap-2">
             {selectedOrders.size} order{selectedOrders.size > 1 ? 's' : ''} selected
+            {bulkProgress && <span className="text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded text-[10px] uppercase tracking-widest">{bulkProgress}</span>}
           </span>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <button
+              onClick={handleBulkShiprocketSync}
+              className="flex-1 md:flex-none items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 flex"
+            >
+              <FiRefreshCw className={bulkProgress.includes('Sync') ? 'animate-spin' : ''} /> Sync to SR
+            </button>
+            <button
+              onClick={handleBulkGenerateAWB}
+              className="flex-1 md:flex-none items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-white hover:bg-amber-600 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 flex"
+            >
+              <FiTag className={bulkProgress.includes('Generating') ? 'animate-pulse' : ''} /> Assign AWBs
+            </button>
             <button
               onClick={() => handleBulkUpdateStatus('Packed')}
               className="flex items-center gap-2 px-4 py-2 bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-100 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95"
@@ -189,7 +316,7 @@ export const OrdersPage = () => {
             </button>
             <button
               onClick={() => handleBulkUpdateStatus('Shipped')}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 border border-transparent rounded-lg font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95"
             >
               <FiTruck /> Mark Shipped
             </button>
@@ -229,24 +356,33 @@ export const OrdersPage = () => {
                     <p>{getLocation(order)}</p>
                     <p className="mt-1 font-bold text-slate-900">₹{order.total.toLocaleString()}</p>
                   </div>
-                  <div className="flex gap-2">
-                    {statusLabel === 'Confirmed' && (
+                  <div className="flex flex-wrap justify-end gap-2 max-w-[60%]">
+                    {!order.shiprocketOrderId && !['Cancelled'].includes(order.status) && (
+                      <button onClick={(e) => handleInlineShiprocketSync(e, order.id)} className="p-2 bg-indigo-600 text-white rounded-lg shadow-sm border border-transparent">
+                        <FiRefreshCw size={14} />
+                      </button>
+                    )}
+                    {(order.shiprocketOrderId && !order.awbNumber) && (
+                      <button onClick={(e) => handleInlineGenerateAWB(e, order.id)} className="p-2 bg-amber-500 text-white rounded-lg border border-transparent">
+                        <FiTag size={14} />
+                      </button>
+                    )}
+                    {order.awbNumber && (
+                      <>
+                        <button onClick={(e) => handleInlineGetLabel(e, order.shiprocketShipmentId!)} className="p-2 border border-slate-300 text-slate-700 bg-white rounded-lg shadow-sm font-bold text-[10px] uppercase">
+                          Label
+                        </button>
+                      </>
+                    )}
+                    {statusLabel === 'Confirmed' && !order.shiprocketOrderId && (
                       <button
                         onClick={(e) => handleUpdateStatus(order.id, 'Packed', e)}
-                        className="p-2 text-purple-700 bg-purple-50 rounded-lg border border-purple-100"
+                        className="p-2 text-purple-700 bg-purple-50 rounded-lg border border-purple-100 hidden sm:block"
                       >
                         <FiBox size={16} />
                       </button>
                     )}
-                    {statusLabel === 'Packed' && (
-                      <button
-                        onClick={(e) => handleUpdateStatus(order.id, 'Shipped', e)}
-                        className="p-2 text-indigo-700 bg-indigo-50 rounded-lg border border-indigo-100"
-                      >
-                        <FiTruck size={16} />
-                      </button>
-                    )}
-                    <button className="p-2 text-slate-500 bg-slate-50 rounded-lg border border-slate-100">
+                    <button onClick={(e) => { e.stopPropagation(); navigate(`/orders/${order.id}`); }} className="p-2 text-slate-500 bg-slate-50 rounded-lg border border-slate-100">
                       <FiEye size={16} />
                     </button>
                   </div>
@@ -325,37 +461,66 @@ export const OrdersPage = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {statusLabel === 'Confirmed' && (
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          {!order.shiprocketOrderId && !['Cancelled'].includes(order.status) && (
+                            <button
+                              onClick={(e) => handleInlineShiprocketSync(e, order.id)}
+                              className="px-2 py-1.5 text-[10px] font-black text-white bg-indigo-600 hover:bg-indigo-700 border border-transparent rounded uppercase tracking-wider transition-colors flex items-center gap-1 active:scale-95 shadow-sm"
+                            >
+                              <FiRefreshCw /> Sync SR
+                            </button>
+                          )}
+                          {(order.shiprocketOrderId && !order.awbNumber) && (
+                            <button
+                              onClick={(e) => handleInlineGenerateAWB(e, order.id)}
+                              className="px-2 py-1.5 text-[10px] font-black text-white bg-amber-500 hover:bg-amber-600 border border-transparent rounded uppercase tracking-wider transition-colors flex items-center gap-1 active:scale-95 shadow-sm"
+                            >
+                              <FiTag /> Gen AWB
+                            </button>
+                          )}
+                          {order.awbNumber && (
+                            <>
+                              <button
+                                onClick={(e) => handleInlineGetLabel(e, order.shiprocketShipmentId!)}
+                                className="px-2 py-1.5 text-[10px] font-black text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded uppercase tracking-wider transition-colors flex items-center gap-1 active:scale-95 shadow-sm"
+                                title="Print Label"
+                              >
+                                Label
+                              </button>
+                              <button
+                                onClick={(e) => handleInlineGetInvoice(e, order.id)}
+                                className="px-2 py-1.5 text-[10px] font-black text-white bg-slate-900 border border-slate-900 hover:bg-black rounded uppercase tracking-wider transition-colors flex items-center gap-1 active:scale-95 shadow-sm"
+                                title="Print Invoice"
+                              >
+                                Invoice
+                              </button>
+                            </>
+                          )}
+
+                          <div className="w-px h-6 bg-slate-200 mx-1 hidden xl:block"></div>
+
+                          {statusLabel === 'Confirmed' && !order.shiprocketOrderId && (
                             <button
                               onClick={(e) => handleUpdateStatus(order.id, 'Packed', e)}
-                              className="px-3 py-1.5 text-[10px] font-black text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-md uppercase tracking-wider transition-colors flex items-center gap-1.5 active:scale-95"
+                              className="w-7 h-7 flex items-center justify-center text-[10px] font-black text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded transition-colors active:scale-95"
+                              title="Mark Local Packed"
                             >
-                              <FiBox /> Pack
-                            </button>
-                          )}
-                          {statusLabel === 'Packed' && (
-                            <button
-                              onClick={(e) => handleUpdateStatus(order.id, 'Shipped', e)}
-                              className="px-3 py-1.5 text-[10px] font-black text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md uppercase tracking-wider transition-colors flex items-center gap-1.5 active:scale-95"
-                            >
-                              <FiTruck /> Ship
-                            </button>
-                          )}
-                          {(statusLabel === 'Pending' || statusLabel === 'Confirmed') && (
-                            <button
-                              onClick={(e) => handleUpdateStatus(order.id, 'Cancelled', e)}
-                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors active:scale-95"
-                              title="Cancel Order"
-                            >
-                              <FiXCircle size={16} />
+                              <FiBox size={14} />
                             </button>
                           )}
                           <button
                             onClick={(e) => { e.stopPropagation(); navigate(`/orders/${order.id}`); }}
-                            className="px-3 py-1.5 text-[10px] font-black text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:text-indigo-600 rounded-md uppercase tracking-wider transition-colors flex items-center gap-1.5 shadow-sm active:scale-95"
+                            className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent rounded transition-colors active:scale-95"
+                            title="View Details"
                           >
-                            <FiEye className="w-4 h-4" /> View
+                            <FiEye size={14} />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteOrder(order.id, e)}
+                            className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors active:scale-95"
+                            title="Delete Order"
+                          >
+                            <FiTrash2 size={14} />
                           </button>
                         </div>
                       </td>

@@ -25,5 +25,10 @@ export const bulkEnquiryService = {
     updateStatus: async (id: string, status: string, notes?: string) => {
         const response = await api.patch(`/admin/bulk-enquiries/${id}/status`, { status, notes });
         return response.data.data.enquiry;
+    },
+
+    deleteEnquiry: async (id: string) => {
+        const response = await api.delete(`/admin/bulk-enquiries/${id}`);
+        return response.data;
     }
 };
