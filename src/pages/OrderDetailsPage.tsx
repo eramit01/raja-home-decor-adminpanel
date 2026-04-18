@@ -3,13 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiClock, FiPrinter, FiCheckCircle, FiPhone, FiMail, FiTag, FiTruck, FiBox, FiSave, FiCopy, FiExternalLink, FiMessageCircle, FiChevronRight, FiMapPin, FiTrash2 } from 'react-icons/fi';
 import { orderService, Order, OrderItem } from '../services/order.service';
 
-const company = {
-    name: "GLAMOUR SPA & WELLNESS",
-    address: "Plot No. 42, Industrial Area Phase II, Chandigarh - 160002",
-    gst: "07AAAAA0000A1Z5",
-    phone: "+91 98765 43210",
-    email: "fulfillment@glamourspa.com"
-};
+
 
 export const OrderDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();

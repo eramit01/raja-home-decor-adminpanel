@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiDownload, FiEye, FiBox, FiTruck, FiXCircle, FiCheckSquare, FiSquare, FiTrash2, FiRefreshCw, FiTag, FiFileText } from 'react-icons/fi';
+import { FiSearch, FiDownload, FiEye, FiBox, FiTruck, FiCheckSquare, FiSquare, FiTrash2, FiRefreshCw, FiTag } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import { orderService, Order } from '../services/order.service';
 
